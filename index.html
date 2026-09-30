@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yu En's Maths Line</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EAF0F6; --paper:#FFFFFF; --ink:#18293D; --muted:#56687D; --rule:#CFD9E4;
+  --line:#0B8A4E; --line-soft:#D6F0E1; --sun:#E89A00; --sun-soft:#FFF2D1;
+  --coral:#CC4B2C; --coral-soft:#FBE4DC; --blue:#1F5FBF; --blue-soft:#DEE8FA; --pink:#E0567F; --pink-soft:#FBDDE6;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101923; --paper:#1A2633; --ink:#E6EDF5; --muted:#9DB0C4; --rule:#2B3B4D;
+    --line:#3CC97F; --line-soft:#1B3A2A; --sun:#FFC247; --sun-soft:#3A2F14;
+    --coral:#FF7C5E; --coral-soft:#3E231C; --blue:#79A8FF; --blue-soft:#1C2A44; --pink:#FF86A8; --pink-soft:#40202B;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101923; --paper:#1A2633; --ink:#E6EDF5; --muted:#9DB0C4; --rule:#2B3B4D;
+  --line:#3CC97F; --line-soft:#1B3A2A; --sun:#FFC247; --sun-soft:#3A2F14;
+  --coral:#FF7C5E; --coral-soft:#3E231C; --blue:#79A8FF; --blue-soft:#1C2A44; --pink:#FF86A8; --pink-soft:#40202B;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:19px/1.55 "Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.display{font-family:"Fredoka","Trebuchet MS",system-ui,sans-serif;font-weight:600;line-height:1.15;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+img,svg{max-width:100%}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px 60px}
+.link{background:none;border:0;color:var(--blue);text-decoration:underline;text-underline-offset:3px;padding:6px 0;font-size:17px}
+.btn{background:var(--line);color:#fff;border:0;border-radius:14px;padding:14px 26px;font-family:"Fredoka",system-ui,sans-serif;font-size:21px;font-weight:600;box-shadow:0 4px 0 color-mix(in srgb,var(--line) 60%,#000)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 color-mix(in srgb,var(--line) 60%,#000)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.alt{background:var(--blue);box-shadow:0 4px 0 color-mix(in srgb,var(--blue) 60%,#000)}
+.btn.soft{background:var(--paper);color:var(--ink);border:2px solid var(--rule);box-shadow:none}
+.muted{color:var(--muted)}
+
+/* ---------- home ---------- */
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.top h1{font-size:40px}
+.top .sub{margin:6px 0 0;color:var(--muted);font-size:18px}
+.linebox{margin:22px -20px 8px;overflow-x:auto;padding:4px 20px 6px;scrollbar-width:thin}
+.linebox svg{display:block;max-width:none}
+.st-label{font:600 13px "Fredoka",system-ui,sans-serif;fill:var(--muted)}
+.st-label.today{fill:var(--ink)}
+.ride{background:var(--paper);border-radius:22px;padding:26px;margin-top:18px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;border:2px solid var(--rule)}
+.ride h2{font-size:28px}
+.ride p{margin:6px 0 0;color:var(--muted)}
+@media (max-width:620px){.ride{grid-template-columns:1fr}}
+.skills{margin-top:30px}
+.skills h2{font-size:24px;margin-bottom:10px}
+.skill{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--rule)}
+.skill:last-child{border-bottom:0}
+.skill .nm{font-weight:700}
+.skill .nt{font-size:15px;color:var(--muted)}
+.stars{font-size:22px;letter-spacing:2px;color:var(--sun);white-space:nowrap}
+.stars .off{color:var(--rule)}
+.pill{border:2px solid var(--rule);background:var(--paper);border-radius:999px;padding:6px 14px;font-size:15px;font-weight:700}
+.pill:hover{border-color:var(--line)}
+
+/* ---------- quest ---------- */
+.qbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:space-between}
+.mini{display:flex;align-items:center}
+.mini span{width:16px;height:16px;border-radius:50%;border:3px solid var(--line);background:var(--paper)}
+.mini span.done{background:var(--line)}
+.mini span.now{width:24px;height:24px;border-color:var(--sun);border-width:5px}
+.mini i{width:34px;height:5px;background:var(--line)}
+.qcard{background:var(--paper);border-radius:22px;padding:28px;margin-top:18px;border:2px solid var(--rule)}
+.qcard.is-twin{border-color:var(--blue)}
+.qmeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px;color:var(--muted);font-size:16px;font-weight:700}
+.tag{background:var(--blue-soft);color:var(--blue);border-radius:999px;padding:2px 12px;font-size:14px}
+.qtext{font-size:22px;line-height:1.55;max-width:68ch}
+.qtext b{font-weight:700}
+.figure{margin:18px 0 4px}
+.paper{margin:18px 0 12px;font-size:16px;color:var(--muted)}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:520px){.opts{grid-template-columns:1fr}}
+.opt{background:var(--paper);border:3px solid var(--rule);border-radius:16px;padding:16px;font-family:"Fredoka",system-ui,sans-serif;font-size:26px;font-weight:600;text-align:center;min-height:72px;transition:border-color .15s,background .15s}
+.opt:hover:not([disabled]){border-color:var(--blue)}
+.opt.sel{border-color:var(--blue);background:var(--blue-soft)}
+.opt.good{border-color:var(--line);background:var(--line-soft)}
+.opt.bad{border-color:var(--coral);background:var(--coral-soft);text-decoration:line-through;text-decoration-thickness:2px}
+.opt[disabled]{cursor:default}
+.opt.faded{opacity:.45}
+.actions{margin-top:20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.fb{margin-top:18px;border-radius:16px;padding:16px 18px;font-size:19px}
+.fb:empty{display:none}
+.fb.good{background:var(--line-soft)}
+.fb.clue{background:var(--sun-soft)}
+.fb.miss{background:var(--coral-soft)}
+.fb h3{font-size:22px;margin-bottom:4px}
+.fb p{margin:6px 0 0}
+.sol{margin:10px 0 0;padding-left:22px}
+.sol li{margin:4px 0}
+.walk{margin-top:16px;border:2px dashed var(--line);border-radius:16px;padding:16px 18px}
+.walk h3{font-size:22px}
+.walk .tip{margin:8px 0;background:var(--line-soft);border-radius:10px;padding:8px 12px}
+.walk .sol li{font-size:20px}
+.walk .sol li.fresh{animation:rise .35s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.burst{display:inline-block;animation:pop .5s ease-out}
+@keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.25)}100%{transform:scale(1);opacity:1}}
+
+/* guide */
+.guide{background:var(--paper);border:3px solid var(--sun);border-radius:22px;padding:24px 26px;margin-top:18px}
+.guide-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.guide-head h2{font-size:26px}
+.dots{display:flex;gap:6px}
+.dots span{width:12px;height:12px;border-radius:50%;background:var(--rule)}
+.dots span.on{background:var(--sun)}
+.dots span.ok{background:var(--line)}
+.step h3{font-size:22px;margin:16px 0 6px}
+.step p{margin:6px 0}
+.ask{margin-top:14px}
+.ask .q{font-weight:700;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{border:3px solid var(--rule);background:var(--paper);border-radius:14px;padding:10px 18px;font-size:20px;font-weight:700}
+.chip:hover:not([disabled]){border-color:var(--blue)}
+.chip.good{border-color:var(--line);background:var(--line-soft)}
+.chip.bad{border-color:var(--coral);background:var(--coral-soft)}
+.hint{margin-top:12px;background:var(--sun-soft);border-radius:12px;padding:10px 14px}
+.hint:empty{display:none}
+.nextrow{margin-top:18px}
+.hidden{display:none!important}
+
+/* widgets */
+.w{margin-top:10px}
+.w .goal{font-size:20px}
+.track{position:relative;height:16px;background:var(--rule);border-radius:999px;margin:34px 6px 16px}
+.track-fill{position:absolute;left:0;top:0;bottom:0;background:var(--line);border-radius:999px;transition:width .35s}
+.track-dot{position:absolute;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--sun);border:4px solid var(--paper);transition:left .35s}
+.track-lbl{position:absolute;top:-30px;font-size:15px;font-weight:700;color:var(--muted)}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.wbtn{border:3px solid var(--line);background:var(--line-soft);border-radius:12px;padding:8px 16px;font-weight:700;font-size:19px}
+.wbtn.ghost{border-color:var(--rule);background:var(--paper)}
+.hops{display:flex;flex-wrap:wrap;gap:8px;min-height:10px;margin:6px 0}
+.hops span{background:var(--blue-soft);border-radius:8px;padding:2px 10px;font-size:16px}
+.readout{font-size:20px}
+.msg{margin-top:8px;font-weight:700}
+.msg.ok{color:var(--line)}
+.msg.no{color:var(--coral)}
+.blocks{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.blk{min-width:120px;height:74px;border-radius:14px;border:3px dashed var(--blue);background:var(--blue-soft);font:600 22px "Fredoka",system-ui,sans-serif}
+.blk.open{border-style:solid;border-color:var(--line);background:var(--line-soft)}
+.blk.mins{min-width:84px;border-style:solid;border-color:var(--sun);background:var(--sun-soft);cursor:default}
+.range{width:100%;max-width:520px;height:34px;accent-color:var(--pink)}
+.cart{display:grid;gap:10px;margin:12px 0}
+.item{display:grid;grid-template-columns:minmax(0,1fr) 110px auto 72px;gap:12px;align-items:center;border:2px solid var(--rule);border-radius:14px;padding:10px 14px}
+.item .pr{color:var(--muted)}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:38px;height:38px;border-radius:10px;border:2px solid var(--rule);background:var(--paper);font-weight:700;font-size:20px}
+.qty b{min-width:24px;text-align:center;font-size:21px}
+.icons{font-size:30px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0}
+.icons .eq{font-size:20px;font-weight:700;margin-left:10px}
+.grp{border:3px solid var(--sun);border-radius:12px;padding:2px 8px;display:inline-flex;gap:4px}
+.grp.hl{background:var(--sun-soft)}
+.x{opacity:.3;text-decoration:line-through}
+.tags{display:flex;flex-wrap:wrap;gap:12px}
+.ptag{border:2px solid var(--ink);border-radius:12px;padding:10px 16px;text-align:center;min-width:130px}
+.ptag .n{font-weight:700;text-transform:capitalize}
+.fr{display:inline-flex;align-items:center;gap:16px;font:600 30px "Fredoka",system-ui,sans-serif}
+.frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.1}
+.frac i{display:block;width:100%;height:3px;background:var(--ink);margin:4px 0}
+.frac .box{width:44px;height:44px;border:3px solid var(--ink);border-radius:4px}
+
+/* done + parents */
+.done h1{font-size:40px}
+.big{font:700 64px "Fredoka",system-ui,sans-serif;color:var(--line)}
+.rlist{list-style:none;padding:0;margin:16px 0}
+.rlist li{padding:10px 0;border-bottom:1px solid var(--rule);display:flex;gap:12px;align-items:center}
+.parent h2{font-size:24px;margin:28px 0 10px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:17px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule);white-space:nowrap}
+th{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;color:var(--muted)}
+.card{background:var(--paper);border:2px solid var(--rule);border-radius:18px;padding:18px 20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.kpi b{display:block;font:700 34px "Fredoka",system-ui,sans-serif}
+.kpi span{color:var(--muted);font-size:16px}
+.dlg-back{position:fixed;inset:0;background:rgba(10,20,30,.45);display:grid;place-items:center;padding:20px;z-index:50}
+.dlg{background:var(--paper);border-radius:22px;padding:26px;max-width:440px;width:100%;border:2px solid var(--rule)}
+.dlg h2{font-size:26px}
+.dlg p{margin:10px 0 0;color:var(--muted)}
+.btn.danger{background:var(--coral);box-shadow:0 4px 0 color-mix(in srgb,var(--coral) 60%,#000)}
+.ridebtns{display:flex;flex-direction:column;gap:12px}
+.teaser{margin:12px 4px 0;color:var(--muted)}
+.gcard{background:var(--paper);border:2px solid var(--rule);border-radius:22px;padding:24px;margin-top:18px}
+.gcard h1{font-size:34px}
+.ghow{margin:8px 0 12px;color:var(--muted);max-width:70ch}
+.ghud{font-size:20px;min-height:32px;margin-bottom:8px}
+.gpanel{text-align:center;padding:40px 16px;border:3px dashed var(--rule);border-radius:18px}
+.gpanel p{margin:6px 0}
+.gcanvas{display:block;width:100%;max-width:760px;aspect-ratio:760/420;border-radius:16px;touch-action:none;margin:0 auto;cursor:pointer}
+.mgrid{display:grid;gap:10px;max-width:760px;margin:0 auto}
+.mcard{position:relative;height:92px;border:0;border-radius:14px;background:var(--blue);color:#fff;font:600 20px "Fredoka",system-ui,sans-serif;padding:6px}
+.mcard .mb{display:none}.mcard.up{background:var(--sun-soft);color:var(--ink);border:3px solid var(--sun)}
+.mcard.up .mf{display:none}.mcard.up .mb{display:block}
+.mcard.got{background:var(--line-soft);border-color:var(--line)}
+.mcard .mf{font-size:34px}
+.bstage{position:relative;width:100%;max-width:760px;aspect-ratio:760/420;margin:0 auto;border-radius:16px;overflow:hidden;background:linear-gradient(#9FD4F5,#E6F5FD)}
+.btarget{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#fff;color:#18293D;border-radius:999px;padding:4px 20px;font:600 24px "Fredoka",system-ui,sans-serif;z-index:2}
+.balloon{position:absolute;width:68px;height:82px;border:0;border-radius:50% 50% 48% 48%;background:var(--c);color:#fff;font:700 22px "Fredoka",system-ui,sans-serif;box-shadow:inset -8px -8px 0 rgba(0,0,0,.12)}
+.balloon::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:26px;background:rgba(0,0,0,.35)}
+.balloon.sel{outline:5px solid #fff;outline-offset:2px;transform:scale(1.12)}
+.balloon.popped{transform:scale(1.6);opacity:0;transition:all .3s}
+.balloon.shake{animation:shake .4s}
+@keyframes shake{25%{margin-left:-6px}75%{margin-left:6px}}
+.backup.warn{border-color:var(--sun);background:var(--sun-soft)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app" class="wrap" aria-live="polite"></div>
+<script>
+"use strict";
+// ==GEN START==
+const pad=n=>String(n).padStart(2,'0');
+const R={
+  int:(a,b)=>a+Math.floor(Math.random()*(b-a+1)),
+  pick:a=>a[Math.floor(Math.random()*a.length)],
+  shuffle:a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+};
+const NAMES=['Mei Xin','Aisyah','Rahul','Jun Hao','Priya','Farhan','Wei Ling','Hui Min','Arjun','Nurul'];
+const money=c=>'$'+(c/100).toFixed(2);
+function t12(m){m=((m%1440)+1440)%1440;const h=Math.floor(m/60),mm=m%60;return (h%12||12)+'.'+pad(mm)+' '+(h>=12?'p.m.':'a.m.')}
+function t24(m){m=((m%1440)+1440)%1440;return pad(Math.floor(m/60))+pad(m%60)}
+function dur(m){const h=Math.floor(m/60),mm=m%60;if(!h)return mm+' min';if(!mm)return h+' h';return h+' h '+mm+' min'}
+function isPosInt(v){return Number.isInteger(v)&&v>0}
+
+// 4 answer options: correct + misconception distractors (+ filler)
+function makeOptions(correct,ds,fill){
+  const seen=new Set([correct]);const out=[{label:correct,code:'ok'}];
+  for(const d of ds){if(out.length>=4)break;if(d.label==null||seen.has(d.label))continue;seen.add(d.label);out.push(d)}
+  let g=0;while(out.length<4&&g++<80){const l=fill();if(l!=null&&!seen.has(l)){seen.add(l);out.push({label:l,code:'other'})}}
+  return R.shuffle(out);
+}
+function makeAsk(q,correct,wrongs,hint){
+  const seen=new Set([correct]);const opts=[correct];
+  for(const w of wrongs){if(w==null||seen.has(w))continue;seen.add(w);opts.push(w);if(opts.length>=4)break}
+  return {q,correct,options:R.shuffle(opts),hint};
+}
+
+const SKILLS={
+  timeEnd:{name:'Finish time & 24-hour clock',short:'Time',warm:true},
+  minutes:{name:'Hours and minutes',short:'Time',warm:true},
+  fraction:{name:'Equivalent fractions',short:'Fractions',warm:true},
+  money:{name:'Money: how much more?',short:'Money',warm:false},
+  beforeAfter:{name:'Before and after (model drawing)',short:'Model drawing',warm:false},
+  sets:{name:'Comparing two groups',short:'Model drawing',warm:false},
+  squares:{name:'Squares and perimeter',short:'Geometry',warm:false}
+};
+const MISTAKES={
+  noCarry:'Did not carry 60 minutes into 1 hour',
+  forgotHours:'Added the minutes but forgot the hours',
+  no12:'Did not add 12 for p.m. in 24-hour clock',
+  hoursOnly:'Added the hours but forgot the minutes',
+  hundred:'Treated 1 hour as 100 minutes',
+  addLess:'Added when the question said "less"',
+  forgotB:'Dropped the extra minutes when converting',
+  additive:'Fractions: added/subtracted instead of multiplying',
+  copy:'Fractions: kept the top number unchanged',
+  forgotQty:'Money: forgot to multiply by the quantity',
+  totalOnly:'Money: gave the total cost, not "how much more"',
+  wrongQty:'Money: multiplied the wrong item',
+  addedN:'Before-after: added the change instead of taking it away',
+  yOnly:'Answered one group only, not "altogether"',
+  xOnly:'Answered one group only, not "altogether"',
+  endTotal:'Gave the "end" total instead of "at first"',
+  doubled:'Doubled instead of halving',
+  halfStop:'Stopped one step early',
+  pairNotCup:'Found the pair, not the single item',
+  addedAll:'Added both sentences instead of comparing',
+  usedP:'Used perimeter difference as side difference',
+  halfL:'Split the length equally',
+  wrongSquare:'Gave the other square',
+  oneSquare:'Area of one square only',
+  bigSquare:'Squared the whole length',
+  perimeter:'Gave perimeter instead of area',
+  other:'Other slip'
+};
+
+// ---- clock figure ----
+function clockSVG(mins,size){
+  size=size||170;const c=100,hr=((mins/60)%12),mn=mins%60;
+  const ha=(hr*30-90)*Math.PI/180, ma=(mn*6-90)*Math.PI/180;
+  let t='';for(let i=1;i<=12;i++){const a=(i*30-90)*Math.PI/180;t+=`<text x="${c+68*Math.cos(a)}" y="${c+68*Math.sin(a)+7}" text-anchor="middle" font-size="20" font-family="Fredoka,sans-serif" fill="currentColor">${i}</text>`}
+  let k='';for(let i=0;i<60;i++){const a=i*6*Math.PI/180,r1=i%5?86:82;k+=`<line x1="${c+r1*Math.cos(a)}" y1="${c+r1*Math.sin(a)}" x2="${c+90*Math.cos(a)}" y2="${c+90*Math.sin(a)}" stroke="currentColor" stroke-width="${i%5?1:3}"/>`}
+  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="A clock face"><circle cx="100" cy="100" r="94" fill="var(--paper)" stroke="currentColor" stroke-width="4"/>${k}${t}<line x1="100" y1="100" x2="${c+46*Math.cos(ha)}" y2="${c+46*Math.sin(ha)}" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><line x1="100" y1="100" x2="${c+74*Math.cos(ma)}" y2="${c+74*Math.sin(ma)}" stroke="var(--coral)" stroke-width="5" stroke-linecap="round"/><circle cx="100" cy="100" r="6" fill="currentColor"/></svg>`;
+}
+
+// ---- 1. finish time (paper Q20) ----
+function genTimeEnd(){
+  const n=R.pick(NAMES);
+  const start=R.int(13,17)*60+R.pick([0,5,10,15,20,30,35,40,45,50]);
+  const dh=R.pick([1,2]),dm=R.pick([15,20,25,30,40,45,50]);
+  const need=dh*60+dm,end=start+need,D=dur(need);
+  const ctx=R.pick([
+    `The clock shows the time ${n} started baking cookies in the afternoon. Baking took <b>${D}</b>. What time did ${n} finish baking?`,
+    `The clock shows the time a movie started in the afternoon. The movie lasted <b>${D}</b>. What time did the movie end?`,
+    `The clock shows the time ${n} reached the library in the afternoon. ${n} spent <b>${D}</b> there. What time did ${n} leave the library?`,
+    `The clock shows the time a swimming lesson started in the afternoon. The lesson lasted <b>${D}</b>. What time did the lesson end?`
+  ]);
+  const carry=(start%60)+dm>=60,ds=[];
+  if(carry)ds.push({label:pad(Math.floor(start/60)+dh)+pad(start%60+dm),code:'noCarry'});
+  ds.push({label:t24(start+dm),code:'forgotHours'},{label:t24(end-720),code:'no12'},{label:t24(start+dh*60),code:'hoursOnly'});
+  const why={
+    noCarry:`There is no ":${start%60+dm}" on a clock! 60 minutes make 1 hour, so carry it into the hours.`,
+    forgotHours:`You added the ${dm} minutes, but the ${dh} hour${dh>1?'s':''} went missing. Add both.`,
+    no12:`So close! That is the morning time. After 12 noon, the 24-hour clock adds 12 to the hour.`,
+    hoursOnly:`You added ${dh} h, but not the ${dm} min.`,
+    other:`Read the start time on the clock again, then add ${D}.`
+  };
+  const endH=Math.floor(end/60);
+  return {skill:'timeEnd',
+    text:ctx+' Give your answer in <b>24-hour clock</b>.',
+    figure:`<div class="figure">${clockSVG(start)}</div>`,
+    options:makeOptions(t24(end),ds,()=>t24(end+R.pick([-60,60,-10,10,-5,5]))),answer:t24(end),why,
+    remedy:[
+      {title:'Read the clock',visual:`<div class="figure">${clockSVG(start,150)}</div>`,
+       ask:makeAsk('What time does the clock show?',t12(start),[t12(start+60),t12(start-60),t12(start+5)],'The short hand shows the hour. If it is between two numbers, use the smaller one. The long hand shows the minutes: count 5 for each number.')},
+      {title:'Jump along the time line',text:'Add the time in jumps. Big jumps for hours, small jumps for minutes.',widget:{type:'timeHop',start,need}},
+      {title:'Change to 24-hour clock',
+       ask:makeAsk(`${t12(end)} in 24-hour clock is…`,t24(end),[t24(end-720),t24(end-60),t24(end+60)],`p.m. means after 12 noon, so add 12 to the hour: ${endH-12} + 12 = ${endH}. We write it as ${t24(end)}.`)}
+    ],
+    solution:[`The clock shows ${t12(start)}`,`${t12(start)} + ${dh} h = ${t12(start+dh*60)}`,`${t12(start+dh*60)} + ${dm} min = ${t12(end)}`,`${t12(end)} = ${t24(end)} in 24-hour clock`]
+  };
+}
+
+// ---- 2. hours <-> minutes (paper Q13) ----
+function genMinutes(){
+  const n=R.pick(NAMES),A=R.pick([1,2,3]),B=R.pick([5,10,15,20,25]);
+  const C=R.pick([30,35,40,45,50].filter(c=>c>B));
+  const tot=A*60+B,ans=tot-C;
+  const ctx=R.pick([['cleaning the house','cooking dinner'],['doing homework','reading'],['at the playground','at the library'],['practising the piano','drawing']]);
+  const ds=[{label:(A*100+B-C)+' min',code:'hundred'},{label:(tot+C)+' min',code:'addLess'},{label:(A*60-C)+' min',code:'forgotB'}];
+  const why={
+    hundred:`1 hour is 60 minutes, not 100. So ${A} h ${B} min = ${tot} min.`,
+    addLess:`"Less" means the second activity took a shorter time, so we take away ${C} min.`,
+    forgotB:`Don't forget the ${B} min: ${A} h ${B} min = ${A*60} + ${B} minutes.`,
+    other:`Change ${A} h ${B} min into minutes first, then take away ${C} min.`
+  };
+  return {skill:'minutes',
+    text:`${n} spent <b>${A} h ${B} min</b> ${ctx[0]}. ${n} spent <b>${C} min less</b> ${ctx[1]}. How long did ${n} spend ${ctx[1]}? Give your answer in minutes.`,
+    options:makeOptions(ans+' min',ds,()=>(ans+R.pick([-20,-10,10,20]))+' min'),answer:ans+' min',why,
+    remedy:[
+      {title:'Turn hours into minutes',text:'Click each hour block to open it up.',widget:{type:'hourBlocks',A,B}},
+      {ask:makeAsk(`So ${A} h ${B} min = ? min`,tot+' min',[(A*100+B)+' min',(A+B)+' min',(A*60)+' min'],'1 h = 60 min. Count the opened blocks, then add the small block.'),title:'Write it in minutes'},
+      {title:'Read the key word',ask:makeAsk(`"${C} min less" means…`,`Take away ${C} min`,[`Add ${C} min`],'Less means shorter. A shorter time means we take away.')},
+      {title:'Work it out',ask:makeAsk(`${tot} − ${C} = ?`,ans+' min',[(ans+10)+' min',(ans-10)+' min',(tot+C)+' min'],`Try it on paper: ${tot} − ${C}.`)}
+    ],
+    solution:[`${A} h ${B} min = ${A} × 60 + ${B} = ${tot} min`,`${C} min less: ${tot} − ${C} = ${ans} min`]
+  };
+}
+
+// ---- 3. equivalent fractions (paper Q19) ----
+function frac(t,b){return `<span class="frac"><span>${t}</span><i></i><span>${b}</span></span>`}
+function genFraction(){
+  const bases=[[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,6],[5,6]];
+  let p,q,k1,k2;
+  for(;;){[p,q]=R.pick(bases);const ks=[1,2,3,4,5,6].filter(k=>q*k<=12);const k2s=ks.filter(k=>k>=2);if(k2s.length<1||ks.length<2)continue;k2=R.pick(k2s);const k1s=ks.filter(k=>k!==k2);if(!k1s.length)continue;k1=R.pick(k1s);break}
+  const b=q*k1,d=q*k2,c=p*k2,ans=p*k1;
+  const add=c-(d-b);
+  const ds=[{label:isPosInt(add)?String(add):null,code:'additive'},{label:String(c),code:'copy'}];
+  const why={
+    additive:`You took away the same number from the top and the bottom. Equal fractions don't work that way: we multiply or divide the top and bottom by the same number.`,
+    copy:`When the bottom number changes, the top number must change too, so the fraction stays the same size.`,
+    other:`Make ${c}/${d} simpler first, then find the matching fraction with ${b} at the bottom.`
+  };
+  return {skill:'fraction',
+    text:'What is the missing number in the box?',
+    figure:`<div class="figure"><span class="fr"><span class="frac"><span class="box"></span><i></i><span>${b}</span></span> = ${frac(c,d)}</span></div>`,
+    options:makeOptions(String(ans),ds,()=>String(R.int(1,Math.max(6,b+2)))),answer:String(ans),why,
+    remedy:[
+      {title:'See it with fraction bars',text:`The top bar shows ${c}/${d}. Move the slider to colour parts of the bottom bar (${b} parts) until both coloured parts are the same length.`,widget:{type:'fracSlider',b,c,d,ans}},
+      {title:'Make it simpler',ask:makeAsk(`Divide the top and bottom of ${c}/${d} by ${k2}. ${c}/${d} = ?`,`${p}/${q}`,[`${p}/${d}`,`${c}/${q}`,`${c-1}/${d-1}`],`${c} ÷ ${k2} = ${p} and ${d} ÷ ${k2} = ${q}.`)},
+      {title:'Build the new fraction',ask:makeAsk(`${p}/${q} = ?/${b}.  ${q} × ${k1} = ${b}, so ${p} × ${k1} = ?`,String(ans),[String(ans+1),String(Math.max(1,ans-1)),isPosInt(add)?String(add):String(ans+2)],`Whatever we do to the bottom, we do to the top. Multiply ${p} by ${k1}.`)}
+    ],
+    solution:[`${c}/${d} = ${p}/${q} (divide top and bottom by ${k2})`,`${p}/${q} = ${ans}/${b} (multiply top and bottom by ${k1})`,`The missing number is ${ans}.`]
+  };
+}
+
+// ---- 4. money: how much more? (paper Q22) ----
+const plural=s=>s.endsWith('s')?s:s+'s';
+function genMoney(){
+  const who=R.pick(NAMES);
+  const i1=R.pick([['file',150,400],['pencil case',300,700]]);
+  const i2=R.pick([['book',800,1600],['water bottle',500,900],['storybook',600,1200]]);
+  const i3=R.pick([['pencil',60,180],['eraser',50,120],['ruler',80,200],['marker',90,250]]);
+  const pr=([,lo,hi])=>R.int(lo/5,hi/5)*5;
+  const a=pr(i1),b=pr(i2),c=pr(i3),n=R.pick([2,3]);
+  const T=a+b+n*c;const M=Math.max(5,Math.floor(T/100)-R.int(2,7));const ans=T-M*100;
+  const fq=a+b+c-M*100,wq=n*a+b+c-M*100;
+  const ds=[{label:fq>0?money(fq):null,code:'forgotQty'},{label:money(T),code:'totalOnly'},{label:wq>0&&wq!==ans?money(wq):null,code:'wrongQty'}];
+  const why={
+    forgotQty:`${who} wants ${n} ${plural(i3[0])}, not 1. Multiply ${money(c)} by ${n}.`,
+    totalOnly:`That is how much everything costs. The question asks how much MORE money ${who} needs, so compare it with the $${M} ${who} has.`,
+    wrongQty:`Check which item there are ${n} of. It's the ${plural(i3[0])}.`,
+    other:`Find the total cost first. Then compare it with $${M}.`
+  };
+  const tag=(nm,p)=>`<div class="ptag"><div class="n">${nm}</div><div>${money(p)} each</div></div>`;
+  const walkVisual=barCompare(T,M*100,who);
+  return {skill:'money',walkVisual,
+    text:`${who} has <b>$${M}</b>. ${who} would like to buy a ${i1[0]}, a ${i2[0]} and <b>${n} ${plural(i3[0])}</b>. How much more money does ${who} need to buy these items?`,
+    figure:`<div class="figure tags">${tag(i1[0],a)}${tag(i2[0],b)}${tag(i3[0],c)}</div>`,
+    options:makeOptions(money(ans),ds,()=>money(ans+R.pick([-100,100,-50,50,-10,10]))),answer:money(ans),why,
+    remedy:[
+      {title:'What does the question want?',ask:makeAsk('Read the last sentence again. It wants to know…','How much more money is needed',['How much money is left over','How much everything costs'],`"How much more… need" tells us the things cost MORE than $${M}. So first find the total cost. Don't start by taking away from $${M}.`)},
+      {title:'Fill the shopping cart',text:'Put exactly what the question says into the cart.',widget:{type:'cart',items:[{nm:i1[0],p:a,q:1},{nm:i2[0],p:b,q:1},{nm:i3[0],p:c,q:n}],M}},
+      {title:'Compare with the money',visual:barCompare(T,M*100,who),ask:makeAsk(`${money(T)} − $${M}.00 = ?`,money(ans),[money(ans+100),money(T+M*100),fq>0?money(fq):money(ans-10)],`The gap between the two bars is the money still needed. Subtract on paper: ${money(T)} − $${M}.00.`)}
+    ],
+    solution:[`${n} ${plural(i3[0])}: ${n} × ${money(c)} = ${money(n*c)}`,`Total cost: ${money(a)} + ${money(b)} + ${money(n*c)} = ${money(T)}`,`More money needed: ${money(T)} − $${M}.00 = ${money(ans)}`]
+  };
+}
+function barCompare(T,Mc,who){
+  const W=440,wT=W,wM=Math.round(W*Mc/T);
+  return `<svg viewBox="0 0 560 130" width="100%" style="max-width:560px" role="img" aria-label="Bar model comparing total cost with money">
+  <text x="0" y="32" font-size="15" fill="currentColor" font-weight="700">Cost</text><rect x="100" y="12" width="${wT}" height="30" rx="6" fill="var(--blue-soft)" stroke="var(--blue)" stroke-width="2"/><text x="${100+wT/2}" y="33" text-anchor="middle" font-size="16" fill="currentColor">${money(T)}</text>
+  <text x="0" y="82" font-size="15" fill="currentColor" font-weight="700">${who}</text><rect x="100" y="62" width="${wM}" height="30" rx="6" fill="var(--line-soft)" stroke="var(--line)" stroke-width="2"/><text x="${100+wM/2}" y="83" text-anchor="middle" font-size="16" fill="currentColor">${money(Mc)}</text>
+  <rect x="${100+wM}" y="62" width="${wT-wM}" height="30" rx="6" fill="var(--sun-soft)" stroke="var(--sun)" stroke-width="2" stroke-dasharray="6 4"/><text x="${100+wM+(wT-wM)/2}" y="83" text-anchor="middle" font-size="20" font-weight="700" fill="currentColor">?</text>
+  <text x="${100+wM+(wT-wM)/2}" y="120" text-anchor="middle" font-size="14" fill="var(--muted)">more needed</text></svg>`;
+}
+
+// ---- 5. before and after (paper Q24) ----
+function genBeforeAfter(){
+  const ctx=R.pick([['boys','girls','At a playground','entered the playground'],['adults','children','At a concert','arrived'],['cyclists','joggers','At a park','joined them'],['red beads','blue beads','In a box','were put into the box']]);
+  const [X,Y,place,verb]=ctx;const r=R.pick([2,3]),g=R.int(12,40),n=R.int(5,19),D=(r-1)*g+n,ans=(r+1)*g;
+  const rw=r===2?'twice as many':'three times as many';
+  const g2=(D+n)/(r-1);
+  const ds=[{label:Number.isInteger(g2)?String((r+1)*g2):null,code:'addedN'},{label:String(g),code:'yOnly'},{label:String(r*g),code:'xOnly'},{label:String(ans+n),code:'endTotal'}];
+  const why={
+    addedN:`The ${n} ${X} came in later, so they are already part of the ${D}. Take them away first: ${D} − ${n}.`,
+    yOnly:`That is the number of ${Y} only. The question asks for ${X} and ${Y} altogether.`,
+    xOnly:`That is the number of ${X} only. The question asks for ${X} and ${Y} altogether.`,
+    endTotal:`That is the total in the end. The question asks about the start ("at first").`,
+    other:`Draw the model: ${Y} = 1 unit, ${X} = ${r} units at first.`
+  };
+  const u=r-1;
+  const walkVisual=baSVG(X,Y,r,n,D,g);
+  return {skill:'beforeAfter',walkVisual,
+    text:`${place}, there were <b>${rw}</b> ${X} as ${Y} at first. <b>${n} more ${X}</b> ${verb}. In the end, there were <b>${D} more ${X}</b> than ${Y}. How many ${X} and ${Y} were there <b>altogether at first</b>?`,
+    options:makeOptions(String(ans),ds,()=>String(ans+R.pick([-6,-3,3,6,9]))),answer:String(ans),why,
+    remedy:[
+      {title:'Draw the model at first',visual:baSVG(X,Y,r,0,null,null),ask:makeAsk(`At first, the ${X} bar is longer than the ${Y} bar by how many units?`,`${u} unit${u>1?'s':''}`,[`${r} units`,`${r+1} units`,`${u+2} units`].filter(s=>s!==`${u} unit`),`${X}: ${r} units. ${Y}: 1 unit. ${r} − 1 = ${u}.`)},
+      {title:`Add the ${n} new ${X}`,visual:baSVG(X,Y,r,n,D,null),ask:makeAsk(`The difference in the end is ${D}. It is made of ${u} unit${u>1?'s':''} and the ${n} new ${X}. So ${u} unit${u>1?'s':''} = ?`,String(D-n),[String(D+n),String(D),String(n)],`The ${n} ${X} were added on to the ${X} bar. To find the units, take them away: ${D} − ${n} = ${D-n}.`)},
+      ...(u>1?[{title:'Find 1 unit',ask:makeAsk(`${u} units = ${D-n}. 1 unit = ?`,String(g),[String((D-n)*2),String(D-n-2),String(g+2)],`Share ${D-n} into ${u} equal parts: ${D-n} ÷ ${u}.`)}]:[]),
+      {title:'Answer the question',visual:baSVG(X,Y,r,0,null,g),ask:makeAsk(`At first there were ${r} + 1 = ${r+1} units altogether. ${r+1} × ${g} = ?`,String(ans),[String(g),String(r*g),String(ans+n)],`Count all the units at first: ${r} for ${X} and 1 for ${Y}.`)}
+    ],
+    solution:[`At first: ${Y} = 1 unit, ${X} = ${r} units.`,`In the end, difference = ${u} unit${u>1?'s':''} + ${n} = ${D}`,`${u} unit${u>1?'s':''} = ${D} − ${n} = ${D-n}`,...(u>1?[`1 unit = ${D-n} ÷ ${u} = ${g}`]:[]),`Altogether at first = ${r+1} units = ${r+1} × ${g} = ${ans}`]
+  };
+}
+function baSVG(X,Y,r,n,D,unitVal){
+  const lw=120,W=Math.min(100,380/(r+0.8)),nW=n?W*0.7:0,h=34;
+  const totalW=lw+r*W+nW+20;
+  let s=`<svg viewBox="0 0 ${Math.max(totalW,420)} ${D?160:120}" width="100%" style="max-width:${Math.max(totalW,420)+40}px" role="img" aria-label="Bar model">`;
+  const cap=v=>v.charAt(0).toUpperCase()+v.slice(1);
+  s+=`<text x="0" y="36" font-size="16" font-weight="700" fill="currentColor">${cap(Y)}</text>`;
+  s+=`<rect x="${lw}" y="14" width="${W}" height="${h}" rx="4" fill="var(--pink-soft)" stroke="var(--pink)" stroke-width="2"/>`;
+  if(unitVal)s+=`<text x="${lw+W/2}" y="37" text-anchor="middle" font-size="15" fill="currentColor">${unitVal}</text>`;
+  s+=`<text x="0" y="90" font-size="16" font-weight="700" fill="currentColor">${cap(X)}</text>`;
+  for(let i=0;i<r;i++){s+=`<rect x="${lw+i*W}" y="68" width="${W}" height="${h}" rx="4" fill="var(--blue-soft)" stroke="var(--blue)" stroke-width="2"/>`;if(unitVal)s+=`<text x="${lw+i*W+W/2}" y="91" text-anchor="middle" font-size="15" fill="currentColor">${unitVal}</text>`}
+  if(n){s+=`<rect x="${lw+r*W}" y="68" width="${nW}" height="${h}" rx="4" fill="var(--sun-soft)" stroke="var(--sun)" stroke-width="2"/><text x="${lw+r*W+nW/2}" y="91" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${n}</text>`}
+  if(D){const x1=lw+W,x2=lw+r*W+nW;s+=`<path d="M${x1} 112 v10 H${x2} v-10" fill="none" stroke="currentColor" stroke-width="2"/><text x="${(x1+x2)/2}" y="146" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">${D} more</text>`;
+    s+=`<line x1="${x1}" y1="14" x2="${x1}" y2="112" stroke="var(--muted)" stroke-dasharray="4 4"/>`}
+  return s+'</svg>';
+}
+
+// ---- 6. two groups: kettle & cups (paper Q25) ----
+function genSets(){
+  const c=R.pick([{big:'kettle',small:'cup',bi:'🫖',si:'☕'},{big:'jug',small:'glass',bi:'🏺',si:'🥛'},{big:'pail',small:'bottle',bi:'🪣',si:'🧴'}]);
+  const sp=c.small==='glass'?'glasses':c.small+'s',bp=c.big+'s';
+  const C=R.pick([100,125,150,175,200,225,250]),K=R.int(18,36)*50,A=K+3*C,B=2*K+4*C;
+  const mode=R.pick(['cup','pair']);
+  const base=`The total capacity of a ${c.big} and 3 similar ${sp} is <b>${A} ml</b>. The total capacity of 2 such ${bp} and 4 such ${sp} is <b>${B} ml</b>. `;
+  const why={
+    doubled:`Doubling makes it bigger! The second sentence already has 2 of everything, so we HALVE it to get back to 1 ${c.big}.`,
+    halfStop:`Good start: that is 1 ${c.big} and 2 ${sp}. One more step: compare it with the first sentence.`,
+    pairNotCup:`That is 1 ${c.big} and 1 ${c.small} together. The question wants just 1 ${c.small}.`,
+    addedAll:`Adding both sentences gives 3 ${bp} and 7 ${sp}. Compare them instead.`,
+    other:`Draw both sentences as pictures and compare them.`
+  };
+  const row=(k,s)=>c.bi.repeat(k)+c.si.repeat(s);
+  const rows=`<div class="icons">${row(1,3)}<span class="eq">= ${A} ml</span></div><div class="icons">${row(2,4)}<span class="eq">= ${B} ml</span></div>`;
+  const split=`<div class="icons">${row(1,3)}<span class="eq">= ${A} ml</span></div><div class="icons"><span class="grp">${row(1,2)}</span><span class="grp">${row(1,2)}</span><span class="eq">= ${B} ml</span></div><p class="muted">Each yellow group = ${B/2} ml</p>`;
+  const cmp=`<div class="icons"><span class="grp">${row(1,2)}</span><span class="grp hl">${c.si}</span><span class="eq">= ${A} ml</span></div><div class="icons"><span class="grp">${row(1,2)}</span><span class="eq">= ${B/2} ml</span></div>`;
+  if(mode==='cup'){
+    return {skill:'sets',walkVisual:cmp,text:base+`What is the capacity of <b>one ${c.small}</b>?`,
+      options:makeOptions(C+' ml',[{label:(2*B)+' ml',code:'doubled'},{label:(B/2)+' ml',code:'halfStop'},{label:(B-A)+' ml',code:'pairNotCup'}],()=>(C+R.pick([-50,50,-25,25]))+' ml'),answer:C+' ml',why,
+      remedy:[
+        {title:'Draw both sentences',visual:rows,ask:makeAsk(`The second row is 2 ${c.bi} and 4 ${c.si}. If we split it into 2 equal groups, each group has…`,`1 ${c.bi} and 2 ${c.si}`,[`2 ${c.bi} and 2 ${c.si}`,`1 ${c.bi} and 4 ${c.si}`],`Share 2 ${bp} into 2 groups, and 4 ${sp} into 2 groups.`)},
+        {title:'Halve the second row',visual:split,ask:makeAsk(`Each group = ${B} ÷ 2 = ?`,(B/2)+' ml',[(2*B)+' ml',(B-2)+' ml',(B/4)+' ml'],`Splitting into 2 equal groups means dividing by 2, not multiplying.`)},
+        {title:'Compare',visual:cmp,ask:makeAsk(`Row 1 has one extra ${c.si}. 1 ${c.small} = ${A} − ${B/2} = ?`,C+' ml',[(B-A)+' ml',(C+100)+' ml',(A+B/2)+' ml'],`Take away the matching part: ${A} − ${B/2}.`)}
+      ],
+      solution:[`2 ${bp} + 4 ${sp} = ${B} ml, so 1 ${c.big} + 2 ${sp} = ${B} ÷ 2 = ${B/2} ml`,`1 ${c.big} + 3 ${sp} = ${A} ml`,`1 ${c.small} = ${A} − ${B/2} = ${C} ml`]};
+  }
+  const ans=B-A;
+  return {skill:'sets',walkVisual:`<div class="icons">${row(1,3)}<span class="eq">= ${A} ml</span></div><div class="icons"><span class="x">${row(1,3)}</span><span class="grp hl">${row(1,1)}</span><span class="eq">= ${B} ml</span></div>`,text:base+`What is the total capacity of <b>one ${c.big} and one ${c.small}</b>?`,
+    options:makeOptions(ans+' ml',[{label:(2*B)+' ml',code:'doubled'},{label:(B/2)+' ml',code:'halfStop'},{label:(A+B)+' ml',code:'addedAll'}],()=>(ans+R.pick([-100,100,-50,50]))+' ml'),answer:ans+' ml',why,
+    remedy:[
+      {title:'Draw both sentences',visual:rows,ask:makeAsk('Compare the two rows. What does row 2 have that row 1 does not?',`1 ${c.bi} and 1 ${c.si}`,[`1 ${c.bi} and 3 ${c.si}`,`2 ${c.si}`,`2 ${c.bi}`],`Cross out what is the same in both rows: 1 ${c.bi} and 3 ${c.si}. What is left in row 2?`)},
+      {title:'Find the difference',visual:`<div class="icons">${row(1,3)}<span class="eq">= ${A} ml</span></div><div class="icons"><span class="x">${row(1,3)}</span><span class="grp hl">${row(1,1)}</span><span class="eq">= ${B} ml</span></div>`,ask:makeAsk(`So 1 ${c.big} and 1 ${c.small} = ${B} − ${A} = ?`,ans+' ml',[(A+B)+' ml',(2*B)+' ml',(ans+100)+' ml'],`The extra part is the difference between the two totals: ${B} − ${A}.`)}
+    ],
+    solution:[`Row 2 − Row 1 = 1 ${c.big} + 1 ${c.small}`,`${B} − ${A} = ${ans} ml`]};
+}
+
+// ---- 7. squares & perimeter (paper Q26) ----
+function squaresFig(L){
+  return `<svg viewBox="-30 0 330 220" width="300" role="img" aria-label="Square C on top-left and Square D on bottom-right joined at corner Q">
+  <rect x="70" y="20" width="80" height="80" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="110" y="66" text-anchor="middle" font-size="20" fill="currentColor">C</text>
+  <rect x="150" y="100" width="100" height="100" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="200" y="156" text-anchor="middle" font-size="20" fill="currentColor">D</text>
+  <text x="156" y="16" font-size="16" font-weight="700" fill="currentColor">P</text><text x="156" y="96" font-size="16" font-weight="700" fill="currentColor">Q</text><text x="156" y="216" font-size="16" font-weight="700" fill="currentColor">R</text>
+  <line x1="40" y1="20" x2="40" y2="200" stroke="currentColor" stroke-width="1.5"/><path d="M34 26 L40 20 L46 26 M34 194 L40 200 L46 194" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <line x1="40" y1="20" x2="70" y2="20" stroke="currentColor" stroke-dasharray="3 3"/><line x1="40" y1="200" x2="150" y2="200" stroke="currentColor" stroke-dasharray="3 3"/>
+  <text x="34" y="116" text-anchor="end" style="paint-order:stroke"  font-size="16" font-weight="700" fill="currentColor">${L} cm</text></svg>`;
+}
+function genSquares(){
+  const a=R.int(4,9),d=R.int(1,4),b=a+d,L=a+b,P=4*d,mode=Math.random()<0.6?'side':'area';
+  const base=`In the figure, Square C and Square D are joined at a corner Q. PQR is a straight line measuring <b>${L} cm</b>. The perimeter of Square C is <b>${P} cm shorter</b> than the perimeter of Square D. `;
+  const why={
+    usedP:`${P} cm is the difference in PERIMETER (all 4 sides). Each side is only different by ${P} ÷ 4 = ${d} cm.`,
+    halfL:`If both squares were the same size, each side would be ${L/2} cm. But Square D is bigger.`,
+    wrongSquare:`That is the side of Square C, the smaller one.`,
+    oneSquare:`That is only Square D. Add Square C's area too.`,
+    bigSquare:`${L} × ${L} would be one giant square. Find each square's area, then add them.`,
+    perimeter:`That is a perimeter (the distance around). Area is the space inside, in cm².`,
+    other:`Find the side of each square first.`
+  };
+  const common=[
+    {title:'Try different sizes',text:`PQR is ${L} cm, so the two sides must add up to ${L} cm. Slide to change Square C. Stop when Square D's perimeter is exactly ${P} cm more.`,widget:{type:'squareSlider',L,P}},
+    {title:'Why it works',ask:makeAsk(`A perimeter has 4 equal sides. If the perimeters differ by ${P} cm, each side differs by…`,`${d} cm`,[`${P} cm`,`${P/2} cm`,`${2*P} cm`],`Share the ${P} cm among 4 sides: ${P} ÷ 4 = ${d}.`)}
+  ];
+  if(mode==='side'){
+    const up=(L+P)/2;
+    return {skill:'squares',text:base+'Find the length of one side of <b>Square D</b>.',figure:`<div class="figure">${squaresFig(L)}</div>`,
+      options:makeOptions(b+' cm',[{label:Number.isInteger(up)?up+' cm':null,code:'usedP'},{label:L%2===0?(L/2)+' cm':null,code:'halfL'},{label:a+' cm',code:'wrongSquare'}],()=>(b+R.pick([-2,1,2,3]))+' cm'),answer:b+' cm',why,
+      remedy:[...common,{title:'Find Square D',ask:makeAsk(`The sides add up to ${L} cm and D is ${d} cm longer. (${L} + ${d}) ÷ 2 = ?`,b+' cm',[a+' cm',(L/2)+' cm',(L+d)+' cm'],`Add the difference first, then halve: ${L} + ${d} = ${L+d}, and ${L+d} ÷ 2.`)}],
+      solution:[`Perimeter difference ${P} cm, so side difference = ${P} ÷ 4 = ${d} cm`,`Side of D = (${L} + ${d}) ÷ 2 = ${b} cm`,`(Side of C = ${L} − ${b} = ${a} cm)`]};
+  }
+  const ans=a*a+b*b;
+  return {skill:'squares',text:base+'Find the <b>area of the figure</b>.',figure:`<div class="figure">${squaresFig(L)}</div>`,
+    options:makeOptions(ans+' cm²',[{label:(b*b)+' cm²',code:'oneSquare'},{label:(L*L)+' cm²',code:'bigSquare'},{label:(4*L)+' cm²',code:'perimeter'}],()=>(ans+R.pick([-10,10,-4,4]))+' cm²'),answer:ans+' cm²',why,
+    remedy:[...common,{title:'Add both areas',ask:makeAsk(`Square C is ${a} cm, Square D is ${b} cm. ${a} × ${a} + ${b} × ${b} = ?`,ans+' cm²',[(b*b)+' cm²',(L*L)+' cm²',(ans+2)+' cm²'],`${a} × ${a} = ${a*a} and ${b} × ${b} = ${b*b}. Now add.`)}],
+    solution:[`Side difference = ${P} ÷ 4 = ${d} cm`,`Square D = (${L} + ${d}) ÷ 2 = ${b} cm, Square C = ${a} cm`,`Area = ${a*a} + ${b*b} = ${ans} cm²`]};
+}
+
+const TIPS={
+  timeEnd:'Read the clock. Add the hours first, then the minutes. After 12 noon, add 12 to the hour for the 24-hour clock.',
+  minutes:'Change hours into minutes first (1 h = 60 min). Then add or take away.',
+  fraction:'Make the fraction simpler first. Then multiply the top and the bottom by the same number.',
+  money:'Find the total cost first. "How much more" = total cost − the money you have.',
+  beforeAfter:'Draw the model at first. Add the change. Take the change away from the difference to find the units.',
+  sets:'Draw both sentences. Halve or compare them until only one thing is different.',
+  squares:'A square has 4 equal sides, so perimeter difference ÷ 4 = side difference.'
+};
+const GEN={timeEnd:genTimeEnd,minutes:genMinutes,fraction:genFraction,money:genMoney,beforeAfter:genBeforeAfter,sets:genSets,squares:genSquares};
+// ==GEN END==
+
+// ---------- storage ----------
+const KEY='yuen-maths-line-v1';
+function blank(){return {v:1,sessions:[],attempts:[],games:{plays:{},best:{}},updatedAt:0}}
+function loadLocal(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.v===1)return s}catch(e){}return blank()}
+let state=loadLocal(),remote=null,saving=Promise.resolve();
+function save(){
+  state.updatedAt=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
+  if(remote){const snap=JSON.stringify(state),ts=state.updatedAt;saving=saving.then(()=>remote.set({json:snap,updatedAt:ts})).catch(()=>{})}
+}
+(async function connect(){
+  try{
+    if(!window.claude||!window.claude.use)return;
+    const db=await window.claude.use('db');const user=await window.claude.use('user');if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    const ref=db.collection('data/users/'+id).doc('maths-line');
+    const snap=await ref.get();
+    if(snap.exists){const d=snap.data();if(d&&d.updatedAt>(state.updatedAt||0)){try{const s=JSON.parse(d.json);if(s&&s.v===1){state=s;try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}if(view!=='quest')render()}}catch(e){}}}
+    remote=ref;
+    if(!snap.exists||(snap.data()||{}).updatedAt<(state.updatedAt||0))save();
+  }catch(e){}
+})();
+
+// ---------- dates ----------
+const EXAM=new Date(2026,9,18);
+function dstr(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function today(){return dstr(new Date())}
+function daysLeft(){const t=new Date();t.setHours(0,0,0,0);return Math.round((EXAM-t)/86400000)}
+function stations(){const out=[];const d=new Date(2026,8,30);while(d<EXAM){out.push(dstr(d));d.setDate(d.getDate()+1)}return out}
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function nice(ds){const [y,m,d]=ds.split('-').map(Number);return d+' '+MON[m-1]}
+
+// ---------- mastery ----------
+function skillStats(k){
+  const at=state.attempts.filter(a=>a.skill===k);const last=at.slice(-6);
+  const first=last.filter(a=>a.res==='first').length;
+  let stars=0;
+  if(last.length>=2&&first/last.length>=0.5)stars=1;
+  if(last.length>=3&&first/last.length>=0.67)stars=2;
+  if(last.length>=4&&first/last.length>=0.8&&last[last.length-1].res==='first')stars=3;
+  return {n:at.length,stars,first:at.filter(a=>a.res==='first').length,retry:at.filter(a=>a.res==='retry').length,fixed:at.filter(a=>a.res==='fixed').length,missed:at.filter(a=>a.res==='missed').length};
+}
+function needsReview(k){const cut=new Date();cut.setDate(cut.getDate()-3);const c=dstr(cut);return state.attempts.some(a=>a.skill===k&&a.res==='missed'&&a.d>=c)}
+function weightedPick(keys,count){
+  const pool=keys.slice(),out=[];
+  while(out.length<count&&pool.length){
+    const w=pool.map(k=>1+(3-skillStats(k).stars)*1.5+(needsReview(k)?4:0));
+    let r=Math.random()*w.reduce((a,b)=>a+b,0),i=0;for(;i<pool.length;i++){r-=w[i];if(r<=0)break}
+    out.push(pool.splice(Math.min(i,pool.length-1),1)[0]);
+  }return out;
+}
+function planDaily(){
+  const warm=Object.keys(SKILLS).filter(k=>SKILLS[k].warm),word=Object.keys(SKILLS).filter(k=>!SKILLS[k].warm);
+  return [...weightedPick(warm,2),...weightedPick(word,3)];
+}
+
+// ---------- app ----------
+const app=document.getElementById('app');
+let view='home',quest=null;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+function askConfirm(title,body,okLabel,cancelLabel,onOk,danger){
+  const old=document.getElementById('dlg');if(old)old.remove();
+  const back=document.activeElement;
+  const d=document.createElement('div');d.id='dlg';d.className='dlg-back';
+  d.innerHTML=`<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgT"><h2 id="dlgT">${title}</h2><p>${body}</p><div class="actions"><button class="btn ${danger?'danger':''}" id="dlgOk">${okLabel}</button><button class="btn soft" id="dlgNo">${cancelLabel}</button></div></div>`;
+  document.body.appendChild(d);
+  const close=()=>{d.remove();document.removeEventListener('keydown',key);if(back&&back.focus)back.focus()};
+  const key=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',key);
+  d.onclick=e=>{if(e.target===d)close()};
+  d.querySelector('#dlgNo').onclick=close;
+  d.querySelector('#dlgOk').onclick=()=>{d.remove();document.removeEventListener('keydown',key);onOk()};
+  d.querySelector('#dlgNo').focus();
+}
+function render(){if(gameStop){gameStop();gameStop=null}({home:renderHome,quest:renderQuest,done:renderDone,parent:renderParent,game:renderGame})[view]();window.scrollTo(0,0)}
+const TOTAL_DAYS=15;
+function dayInfo(){const days=[...new Set(state.sessions.filter(s=>s.mode==='daily').map(s=>s.d))].sort();const dt=days.includes(today());return {days,done:days.length,cur:dt?days.length:days.length+1,dt}}
+function doneToday(){return dayInfo().dt}
+function dayLabel(d){const i=dayInfo().days.indexOf(d);return i>=0?'Day '+(i+1):nice(d)}
+
+function lineSVG(){
+  const {done,cur}=dayInfo(),gap=66,x0=30,n=TOTAL_DAYS;const W=x0*2+gap*n;
+  let s=`<svg width="${W}" height="120" viewBox="0 0 ${W} 120" role="img" aria-label="Practice line from Day 1 to Day ${n}, then the exam. ${done} days done.">`;
+  s+=`<line x1="${x0}" y1="50" x2="${x0+gap*n}" y2="50" stroke="var(--line)" stroke-width="10" stroke-linecap="round"/>`;
+  for(let i=1;i<=n;i++){
+    const x=x0+gap*(i-1),isT=i===cur,dn=i<=done;
+    if(isT)s+=`<text x="${x}" y="20" text-anchor="middle" font-size="22">🚆</text>`;
+    s+=`<circle cx="${x}" cy="50" r="${isT?14:11}" fill="${dn?'var(--line)':'var(--paper)'}" stroke="${isT?'var(--sun)':'var(--line)'}" stroke-width="${isT?6:4}"/>`;
+    if(dn)s+=`<path d="M${x-5} 50 l4 4 l7 -8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    s+=`<text x="${x}" y="88" text-anchor="middle" class="st-label${isT?' today':''}">Day ${i}</text>`;
+  }
+  const xe=x0+gap*n;
+  s+=`<rect x="${xe-18}" y="32" width="36" height="36" rx="8" fill="var(--sun)" stroke="var(--ink)" stroke-width="3"/><text x="${xe}" y="57" text-anchor="middle" font-size="18">⭐</text><text x="${xe}" y="88" text-anchor="middle" class="st-label today">Exam</text></svg>`;
+  return s;
+}
+function starHTML(n){return `<span class="stars" aria-label="${n} of 3 stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(3-n)}</span></span>`}
+
+function renderHome(){
+  const {dt,cur,done}=dayInfo();
+  const title=done>=TOTAL_DAYS?`All ${TOTAL_DAYS} days done! You're ready for the exam`:`Day ${Math.min(cur,TOTAL_DAYS)} of ${TOTAL_DAYS}`;
+  app.innerHTML=`
+  <div class="top"><div><h1 class="display">Yu En's Maths Line</h1><p class="sub">${title}. One ride a day moves your train one station.</p></div>
+  <button class="link" id="toParent">For parents</button></div>
+  <div class="linebox" id="linebox">${lineSVG()}</div>
+  <section class="ride">
+    <div>${dt?`<h2>Day ${cur} done! 🎉</h2><p>Your train has reached Day ${cur}. Come back tomorrow for Day ${cur+1}, or do an extra ride now.</p>`
+      :`<h2>Day ${Math.min(cur,TOTAL_DAYS)} ride</h2><p>5 questions, about 15 minutes. Keep your paper and pencil ready.</p>`}</div>
+    <div class="ridebtns">${dt?`<button class="btn" id="play">${GAMES[gameFor(done).id].icon} Play today's game</button>`:''}<button class="btn ${dt?'soft':''}" id="go">${dt?'Extra ride':`Start Day ${Math.min(cur,TOTAL_DAYS)}`}</button></div>
+  </section>
+  ${!dt&&cur<=TOTAL_DAYS?`<p class="teaser">🎁 Finish Day ${cur} to unlock today's game: <b>${GAMES[gameFor(cur).id].icon} ${GAMES[gameFor(cur).id].name}</b></p>`:''}
+  <section class="skills"><h2>My skills</h2>
+    ${Object.keys(SKILLS).map(k=>{const s=skillStats(k);return `<div class="skill"><div><div class="nm">${SKILLS[k].name}</div><div class="nt">${s.n?`${s.n} done`:'Not tried yet'}${needsReview(k)?', practise again':''}</div></div>${starHTML(s.stars)}<button class="pill" data-skill="${k}">Practise</button></div>`}).join('')}
+  </section>`;
+  const lb=document.getElementById('linebox');const idx=Math.min(cur,TOTAL_DAYS)-1;if(idx>0)lb.scrollLeft=Math.max(0,30+66*idx-lb.clientWidth/2);
+  document.getElementById('go').onclick=()=>startQuest(dt?'extra':'daily',planDaily());
+  const pl=document.getElementById('play');if(pl)pl.onclick=()=>{view='game';render()};
+  document.getElementById('toParent').onclick=()=>{view='parent';render()};
+  app.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>startQuest('skill',Array(5).fill(b.dataset.skill)));
+}
+
+function newQ(skill,avoid){let q,g=0;do{q=GEN[skill]()}while(avoid&&q.answer===avoid&&g++<6);q.phase='ask';q.sel=null;q.bad=new Set();q.t0=Date.now();return q}
+function startQuest(mode,skills){quest={mode,qs:skills.map(s=>newQ(s)),i:0,t0:Date.now(),results:[]};view='quest';render()}
+
+function miniLine(){return `<div class="mini" aria-label="Question ${quest.i+1} of ${quest.qs.length}">${quest.qs.map((q,i)=>`${i?'<i></i>':''}<span class="${i<quest.i?'done':i===quest.i?'now':''}"></span>`).join('')}</div>`}
+
+function record(Q,res){
+  state.attempts.push({d:today(),skill:Q.skill,res,code:Q.firstCode||null,secs:Math.round((Date.now()-Q.t0)/1000)});
+  quest.results.push({skill:Q.skill,res});save();
+}
+
+function renderQuest(){
+  const Q=quest.qs[quest.i];const twin=Q.phase==='twin'||Q.phase==='twinDone';const cur=twin?Q.twin:Q;
+  const locked=!['ask','retry','twin'].includes(Q.phase);
+  const last=quest.i===quest.qs.length-1;
+  let fb='';
+  if(Q.phase==='solved'){
+    fb=Q.res==='first'?`<div class="fb good"><h3><span class="burst">⭐</span> Correct!</h3><p>${R.pick(['Great working.','You got it first time.','Nice and careful.'])}</p></div>`
+      :`<div class="fb good"><h3><span class="burst">👍</span> Good fix!</h3><p>You checked your working and found it. That's a real exam skill.</p></div>`;
+  }else if(Q.phase==='retry'){
+    fb=`<div class="fb clue"><h3>Not yet. Here's a clue 🔎</h3><p>${Q.why[Q.firstCode]||Q.why.other}</p><p>Check your working on paper and try once more.</p></div>`;
+  }else if(Q.phase==='remedy'){
+    const c2=(Q.secondCode&&Q.secondCode!=='other')?Q.secondCode:Q.firstCode;fb=`<div class="fb miss"><h3>Let's work through it together</h3><p>${Q.why[c2]||Q.why.other}</p></div>`;
+  }else if(Q.phase==='twin'){
+    fb=`<div class="fb clue"><p>Now you try one on your own. Same idea, new numbers.</p></div>`;
+  }else if(Q.phase==='twinDone'){
+    fb=Q.res==='fixed'?`<div class="fb good"><h3><span class="burst">🏅</span> You fixed it!</h3><p>You learned it and used it on a new question. That's how you get better.</p></div>`
+      :`<div class="fb miss"><h3>Here's how this one works</h3><ol class="sol">${cur.solution.map(l=>`<li>${l}</li>`).join('')}</ol><p>This kind of question will come back tomorrow for more practice.</p></div>`;
+  }
+  const optCls=o=>{
+    if(Q.phase==='solved'||Q.phase==='twinDone'||Q.phase==='explore'){if(o.label===cur.answer)return 'good';if(o.label===cur.sel)return 'bad';return 'faded'}
+    if(Q.phase==='remedy')return o.label===Q.lastWrong?'bad':'faded';
+    if(cur.bad&&cur.bad.has(o.label))return 'bad';
+    return o.label===cur.sel?'sel':'';
+  };
+  const gotIt=Q.phase==='solved'||(Q.phase==='twinDone'&&Q.res==='fixed');
+  const showWalk=gotIt;
+  const walkDone=(Q.walk||1)>=cur.solution.length;
+  const canNext=(gotIt&&walkDone)||(Q.phase==='twinDone'&&Q.res==='missed');
+  if(Q.phase==='explore')fb=`<div class="fb good"><p>Let's explore how it works with the hands-on guide.</p></div>`;
+  app.innerHTML=`
+  <div class="qbar"><button class="link" id="quit">Back to the map</button>${miniLine()}</div>
+  <article class="qcard ${twin?'is-twin':''}">
+    <p class="qmeta"><span>${twin?'Twin question':`Question ${quest.i+1} of ${quest.qs.length}`}</span><span class="tag">${SKILLS[cur.skill].short}</span></p>
+    <div class="qtext">${cur.text}</div>
+    ${cur.figure||''}
+    <p class="paper">✏️ Work it out on your paper, then choose your answer.</p>
+    <div class="opts" role="group" aria-label="Answer choices">${cur.options.map(o=>`<button class="opt ${optCls(o)}" data-l="${esc(o.label)}" ${locked||(cur.bad&&cur.bad.has(o.label))?'disabled':''} aria-pressed="${o.label===cur.sel}">${o.label}</button>`).join('')}</div>
+    <div class="actions">
+      ${!locked?`<button class="btn" id="check" ${cur.sel?'':'disabled'}>Check my answer</button>`:''}
+
+    </div>
+    <div aria-live="polite">${fb}${showWalk?walkHTML(Q,cur):''}</div>
+    ${canNext?`<div class="actions"><button class="btn" id="next">${last?'Finish the ride':'Next question'}</button></div>`:''}
+  </article>
+  ${Q.phase==='remedy'||Q.phase==='explore'?'<section class="guide" id="guide"></section>':''}`;
+  document.getElementById('quit').onclick=()=>askConfirm('Leave this ride?','Questions you already finished are saved. You can start a new ride any time.','Leave the ride','Keep going',()=>{view='home';render()});
+  app.querySelectorAll('.opt:not([disabled])').forEach(b=>b.onclick=()=>{cur.sel=b.dataset.l;renderQuest()});
+  const ch=document.getElementById('check');if(ch)ch.onclick=()=>check(Q,cur);
+  const nx=document.getElementById('next');if(nx)nx.onclick=nextQ;
+  const more=document.getElementById('more');if(more)more.onclick=()=>{Q.walk=(Q.walk||1)+1;renderQuest();const m=document.getElementById('more')||document.getElementById('next');if(m)m.focus({preventScroll:true})};
+  const exp=document.getElementById('explore');if(exp)exp.onclick=()=>{Q.phase='explore';Q.step=0;Q.explored=true;renderQuest();const g=document.getElementById('guide');if(g)g.scrollIntoView({behavior:'smooth',block:'start'})};
+  if(Q.phase==='remedy'||Q.phase==='explore')renderGuide(Q);
+}
+
+function walkHTML(Q,cur){
+  const L=cur.solution,n=Math.min(Q.walk||1,L.length),all=n>=L.length;
+  return `<section class="walk"><h3>How to solve it</h3><p class="tip">💡 ${TIPS[cur.skill]}</p>${cur.walkVisual?`<div class="figure">${cur.walkVisual}</div>`:''}
+  <ol class="sol">${L.slice(0,n).map((l,i)=>`<li class="${i===n-1&&n>1?'fresh':''}">${l}</li>`).join('')}</ol>
+  <p class="muted" style="font-size:16px">${all?'Did your working match? If not, fix it on your paper.':'Compare each step with your working on paper.'}</p>
+  <div class="actions">${all?'':`<button class="btn soft" id="more">Show next step (${n} of ${L.length})</button>`}${all&&Q.phase==='solved'&&!Q.explored&&Q.res!=='fixed'?`<button class="btn soft" id="explore">Try the hands-on guide</button>`:''}</div></section>`;
+}
+function check(Q,cur){
+  const opt=cur.options.find(o=>o.label===cur.sel);if(!opt)return;
+  const ok=opt.label===cur.answer;
+  if(Q.phase==='ask'){
+    if(ok){Q.res='first';Q.phase='solved';record(Q,'first')}
+    else{Q.firstCode=opt.code;cur.bad.add(opt.label);cur.sel=null;Q.phase='retry'}
+  }else if(Q.phase==='retry'){
+    if(ok){Q.res='retry';Q.phase='solved';record(Q,'retry')}
+    else{Q.lastWrong=opt.label;Q.secondCode=opt.code;cur.bad.add(opt.label);Q.phase='remedy';Q.step=0}
+  }else if(Q.phase==='twin'){
+    Q.res=ok?'fixed':'missed';Q.phase='twinDone';record(Q,Q.res);
+  }
+  renderQuest();
+  if(Q.phase==='remedy'){const g=document.getElementById('guide');if(g)g.scrollIntoView({behavior:'smooth',block:'start'})}
+}
+function nextQ(){if(quest.i<quest.qs.length-1){quest.i++;quest.qs[quest.i].t0=Date.now();render()}else finish()}
+
+function renderGuide(Q){
+  const g=document.getElementById('guide');const steps=Q.remedy;const st=steps[Q.step];const last=Q.step===steps.length-1;
+  g.innerHTML=`<div class="guide-head"><h2>Step ${Q.step+1} of ${steps.length}</h2><div class="dots">${steps.map((s,i)=>`<span class="${i<Q.step?'ok':i===Q.step?'on':''}"></span>`).join('')}</div></div>
+  <div class="step"><h3>${st.title||''}</h3>${st.text?`<p>${st.text}</p>`:''}${st.visual||''}
+   ${st.widget?'<div class="w" id="wid"></div>':''}
+   ${st.ask?`<div class="ask"><div class="q">${st.ask.q}</div><div class="chips">${st.ask.options.map(o=>`<button class="chip" data-v="${esc(o)}">${o}</button>`).join('')}</div><div class="hint" id="hint"></div></div>`:''}
+  </div>
+  <div class="nextrow hidden" id="stepNext"><button class="btn ${last?'alt':''}" id="stepBtn">${last?(Q.phase==='explore'?'Done':'Try a twin question'):'Next step'}</button></div>`;
+  const reveal=()=>{document.getElementById('stepNext').classList.remove('hidden');document.getElementById('stepBtn').focus({preventScroll:true})};
+  if(st.widget)WIDGETS[st.widget.type](document.getElementById('wid'),st.widget,reveal);
+  if(st.ask){
+    g.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+      if(c.dataset.v===st.ask.correct){c.classList.add('good');g.querySelectorAll('.chip').forEach(x=>x.disabled=true);document.getElementById('hint').innerHTML='✅ Yes!';reveal()}
+      else{c.classList.add('bad');c.disabled=true;document.getElementById('hint').innerHTML='💡 '+st.ask.hint}
+    });
+  }
+  document.getElementById('stepBtn').onclick=()=>{
+    if(last&&Q.phase==='explore'){Q.phase='solved';Q.walk=Q.solution.length;renderQuest();const n=document.getElementById('next');if(n){n.scrollIntoView({behavior:'smooth',block:'center'});n.focus({preventScroll:true})}}
+    else if(last){Q.twin=newQ(Q.skill,Q.answer);Q.phase='twin';renderQuest();window.scrollTo(0,0)}
+    else{Q.step++;renderGuide(Q);g.scrollIntoView({behavior:'smooth',block:'start'})}
+  };
+}
+
+// ---------- widgets ----------
+const WIDGETS={
+  timeHop(el,cfg,done){
+    let added=0,hops=[],fin=false;
+    const draw=(msg,cls)=>{
+      const pct=Math.min(100,added/cfg.need*100);
+      el.innerHTML=`<p class="goal">Add <b>${dur(cfg.need)}</b> to <b>${t12(cfg.start)}</b>.</p>
+      <div class="track"><div class="track-fill" style="width:${pct}%"></div><span class="track-dot" style="left:${pct}%"></span><span class="track-lbl" style="left:0">${t12(cfg.start)}</span></div>
+      <div class="btnrow">${[['60','+ 1 h'],['10','+ 10 min'],['5','+ 5 min']].map(([v,l])=>`<button class="wbtn" data-a="${v}" ${fin?'disabled':''}>${l}</button>`).join('')}<button class="wbtn ghost" data-a="0" ${fin?'disabled':''}>Start again</button></div>
+      <div class="hops">${hops.map(h=>`<span>${h}</span>`).join('')}</div>
+      <p class="readout">Added so far: <b>${added?dur(added):'0 min'}</b><br>Time now: <b>${t12(cfg.start+added)}</b></p>
+      <p class="msg ${cls||''}">${msg||''}</p>`;
+      el.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
+        const v=+b.dataset.a;if(!v){added=0;hops=[];draw();return}
+        added+=v;hops.push(`+${v===60?'1 h':v+' min'} → ${t12(cfg.start+added)}`);
+        if(added===cfg.need){fin=true;draw(`You reached ${t12(cfg.start+cfg.need)}! 🎉`,'ok');done()}
+        else if(added>cfg.need)draw('Oops, that jumped too far. Press "Start again".','no');
+        else draw();
+      });
+    };draw();
+  },
+  hourBlocks(el,{A,B},done){
+    const open=Array(A).fill(false);
+    const draw=()=>{
+      const all=open.every(Boolean);
+      el.innerHTML=`<div class="blocks">${open.map((o,i)=>`<button class="blk ${o?'open':''}" data-i="${i}" ${o?'disabled':''}>${o?'60 min':'1 h'}</button>`).join('')}<div class="blk mins" style="display:grid;place-items:center">${B} min</div></div>
+      <p class="msg ok">${all?`${Array(A).fill('60').join(' + ')} + ${B} = ${A*60+B} min`:''}</p>`;
+      el.querySelectorAll('.blk[data-i]').forEach(b=>b.onclick=()=>{open[+b.dataset.i]=true;draw();if(open.every(Boolean))done()});
+    };draw();
+  },
+  fracSlider(el,{b,c,d,ans},done){
+    const W=480,bar=(parts,shade,col,y)=>{let s='';for(let i=0;i<parts;i++){s+=`<rect x="${10+i*W/parts}" y="${y}" width="${W/parts}" height="40" fill="${i<shade?col:'var(--paper)'}" stroke="currentColor" stroke-width="2"/>`}return s};
+    let k=0,fin=false;
+    const draw=()=>{
+      el.innerHTML=`<svg viewBox="0 0 500 110" width="100%" style="max-width:520px" role="img" aria-label="Two fraction bars">${bar(d,c,'var(--pink)',8)}${bar(b,k,'var(--pink)',62)}</svg>
+      <div><input class="range" type="range" min="0" max="${b}" value="${k}" aria-label="Parts coloured on the bottom bar" ${fin?'disabled':''}></div>
+      <p class="readout">Top: <b>${c}/${d}</b>&nbsp;&nbsp;&nbsp; Bottom: <b>${k}/${b}</b></p>
+      <p class="msg ${k===ans?'ok':''}">${k===ans?`They match! ${ans}/${b} = ${c}/${d} 🎉`:k===0?'':k<ans?'The bottom pink part is shorter. Colour more.':'The bottom pink part is longer. Colour less.'}</p>`;
+      const r=el.querySelector('input');r.oninput=()=>{k=+r.value;const f=document.activeElement===r;draw();if(k===ans&&!fin){fin=true;draw();done()}else if(f)el.querySelector('input').focus()};
+    };draw();
+  },
+  cart(el,{items,M},done){
+    const q=items.map(()=>0);let fin=false;
+    const draw=(msg,cls)=>{
+      const tot=items.reduce((s,it,i)=>s+it.p*q[i],0);
+      el.innerHTML=`<div class="cart">${items.map((it,i)=>`<div class="item"><span style="text-transform:capitalize;font-weight:700">${it.nm}</span><span class="pr">${money(it.p)} each</span><span class="qty"><button data-i="${i}" data-d="-1" aria-label="Remove one ${it.nm}" ${fin?'disabled':''}>−</button><b>${q[i]}</b><button data-i="${i}" data-d="1" aria-label="Add one ${it.nm}" ${fin?'disabled':''}>+</button></span><span>${money(it.p*q[i])}</span></div>`).join('')}</div>
+      <p class="readout">Cart total: <b>${money(tot)}</b></p>
+      ${fin?'':'<button class="wbtn" id="chk">Check my cart</button>'}
+      <p class="msg ${cls||''}">${msg||''}</p>`;
+      el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;q[i]=Math.max(0,q[i]+(+b.dataset.d));draw()});
+      const c=el.querySelector('#chk');if(c)c.onclick=()=>{
+        const off=items.findIndex((it,i)=>it.q!==q[i]);
+        if(off<0){fin=true;draw(`Correct! Everything costs ${money(tot)} altogether. That's more than $${M}.`,'ok');done()}
+        else draw(`Read the question again: how many ${plural(items[off].nm)} does the question say?`,'no');
+      };
+    };draw();
+  },
+  squareSlider(el,{L,P},done){
+    let s=1,fin=false;
+    const draw=()=>{
+      const t=L-s,diff=4*t-4*s,sc=Math.min(18,200/L),ok=diff===P;
+      el.innerHTML=`<svg viewBox="0 0 ${L*sc+140} ${L*sc+20}" width="100%" style="max-width:${L*sc+160}px" role="img" aria-label="Square C and Square D">
+        <rect x="80" y="10" width="${s*sc}" height="${s*sc}" fill="var(--pink-soft)" stroke="var(--pink)" stroke-width="2"/><text x="${80+s*sc/2}" y="${10+s*sc/2+6}" text-anchor="middle" font-size="16" fill="currentColor">C</text>
+        <rect x="${80+s*sc}" y="${10+s*sc}" width="${t*sc}" height="${t*sc}" fill="var(--blue-soft)" stroke="var(--blue)" stroke-width="2"/><text x="${80+s*sc+t*sc/2}" y="${10+s*sc+t*sc/2+6}" text-anchor="middle" font-size="16" fill="currentColor">D</text>
+        <line x1="66" y1="10" x2="66" y2="${10+L*sc}" stroke="currentColor" stroke-width="2"/><text x="60" y="${10+L*sc/2}" text-anchor="end" font-size="14" fill="currentColor">${L} cm</text></svg>
+      <div><input class="range" type="range" min="1" max="${L-1}" value="${s}" aria-label="Side of Square C" ${fin?'disabled':''}></div>
+      <div class="tablewrap"><table><tr><th></th><th>Side</th><th>Perimeter</th></tr><tr><td>Square C</td><td>${s} cm</td><td>4 × ${s} = ${4*s} cm</td></tr><tr><td>Square D</td><td>${t} cm</td><td>4 × ${t} = ${4*t} cm</td></tr></table></div>
+      <p class="readout">D's perimeter is <b>${diff>=0?diff+' cm more':Math.abs(diff)+' cm less'}</b>. Goal: <b>${P} cm more</b>.</p>
+      <p class="msg ${ok?'ok':''}">${ok?`Found it! Square C = ${s} cm, Square D = ${t} cm 🎉`:''}</p>`;
+      const r=el.querySelector('input');r.oninput=()=>{s=+r.value;const was=fin;if(4*(L-s)-4*s===P&&!was){fin=true;draw();done()}else{draw();el.querySelector('input').focus()}};
+    };draw();
+  }
+};
+
+function finish(){
+  const first=quest.results.filter(r=>r.res==='first').length;
+  state.sessions.push({d:today(),mode:quest.mode,n:quest.results.length,first,secs:Math.round((Date.now()-quest.t0)/1000)});save();
+  view='done';render();
+}
+function renderDone(){
+  const rs=quest.results,first=rs.filter(r=>r.res==='first').length,fixed=rs.filter(r=>r.res==='fixed'||r.res==='retry').length,missed=rs.filter(r=>r.res==='missed').length;
+  const icon={first:'⭐',retry:'👍',fixed:'🏅',missed:'🔁'},word={first:'Right first time',retry:'Fixed it with a clue',fixed:'Fixed it with the guide',missed:'Coming back tomorrow'};
+  app.innerHTML=`<section class="done"><h1 class="display">${quest.mode==='daily'?`Day ${dayInfo().done} complete! 🚆`:'Ride complete! 🚆'}</h1>
+  <p class="big">${first} / ${rs.length}</p><p class="muted">right first time</p>
+  ${fixed?`<p>You fixed ${fixed} question${fixed>1?'s':''} after a mistake. Fixing mistakes is how you get better.</p>`:''}
+  ${missed?`<p>${missed} question type${missed>1?'s':''} will come back tomorrow for more practice.</p>`:''}
+  <ul class="rlist">${rs.map(r=>`<li><span style="font-size:24px">${icon[r.res]}</span><span><b>${SKILLS[r.skill].name}</b><br><span class="muted">${word[r.res]}</span></span></li>`).join('')}</ul>
+  <div class="actions">${quest.mode==='daily'?`<button class="btn" id="play">🎁 Play your reward: ${GAMES[gameFor(dayInfo().done).id].name}</button>`:''}<button class="btn ${quest.mode==='daily'?'soft':''}" id="home">Back to the map</button></div></section>`;
+  document.getElementById('home').onclick=()=>{view='home';render()};
+  const pl=document.getElementById('play');if(pl)pl.onclick=()=>{view='game';render()};
+}
+
+function daysSince(ds){if(!ds)return Infinity;const [y,m,d]=ds.split('-').map(Number);const t=new Date();t.setHours(0,0,0,0);return Math.round((t-new Date(y,m-1,d))/86400000)}
+function needBackup(){return state.sessions.length>0&&daysSince(state.lastBackup)>=3}
+function backupStatus(){
+  if(!state.sessions.length)return 'No progress yet. Download a backup after her first few rides.';
+  const n=daysSince(state.lastBackup);
+  if(n===Infinity)return '⚠️ Not backed up yet. Download a backup and keep the file somewhere safe (e.g. Google Drive).';
+  const when=n===0?'today':n===1?'yesterday':n+' days ago';
+  return (n>=3?'⚠️ ':'✅ ')+`Last backup: ${when}${n>=3?'. Time to download a fresh one.':'.'}`;
+}
+async function showPersist(){
+  const el=document.getElementById('persist');if(!el||!navigator.storage||!navigator.storage.persisted)return;
+  try{const p=await navigator.storage.persisted();el.textContent=p?'This browser has agreed to keep her progress, so it won\u2019t be cleared to free up space.':'This browser may clear saved data if space runs low, so regular backups matter.'}catch(e){}
+}
+function backupPayload(){return JSON.stringify({app:'yuen-maths-line',exportedAt:new Date().toISOString(),state},null,1)}
+async function downloadBackup(){
+  const msg=document.getElementById('bkMsg'),name=`yuen-maths-backup-${today()}.json`;
+  state.lastBackup=today();const data=backupPayload();
+  let done=false;
+  try{
+    if(window.claude&&window.claude.use){const dl=await window.claude.use('downloads');if(dl){await dl.save({filename:name,data});done=true}}
+  }catch(e){if(e&&e.code==='declined'){state.lastBackup=undefined;msg.className='msg no';msg.textContent='Backup cancelled.';return}}
+  if(!done){const u=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
+  save();
+  document.getElementById('bkStatus').textContent=backupStatus();document.querySelector('.backup').classList.remove('warn');
+  msg.className='msg ok';msg.textContent=`Saved ${name}. Keep it somewhere safe.`;
+}
+function summary(st){const days=new Set((st.sessions||[]).filter(x=>x.mode==='daily').map(x=>x.d)).size;return `${days} day${days===1?'':'s'} done, ${(st.attempts||[]).length} questions`}
+function restoreBackup(file){
+  const msg=document.getElementById('bkMsg');const r=new FileReader();
+  r.onload=()=>{
+    let st=null;try{const j=JSON.parse(r.result);st=j&&j.app==='yuen-maths-line'?j.state:null}catch(e){}
+    if(!st||st.v!==1||!Array.isArray(st.sessions)||!Array.isArray(st.attempts)){msg.className='msg no';msg.textContent='That file isn\u2019t a Maths Line backup. Choose a file named like yuen-maths-backup-….json.';return}
+    askConfirm('Restore this backup?',`Backup: <b>${summary(st)}</b>.<br>Now on this browser: <b>${summary(state)}</b>.<br>The progress on this browser will be replaced by the backup.`,'Restore backup','Cancel',()=>{
+      state=st;if(!state.games)state.games={plays:{},best:{}};save();render();
+      const m=document.getElementById('bkMsg');if(m){m.className='msg ok';m.textContent='Backup restored.'}
+    });
+  };
+  r.readAsText(file);
+}
+function renderParent(){
+  const S=state.sessions,A=state.attempts;
+  const days=[...new Set(S.map(s=>s.d))].sort();
+  const pct=a=>a.length?Math.round(100*a.filter(x=>x.res==='first').length/a.length)+'%':'–';
+  const byDay=days.map(d=>{const a=A.filter(x=>x.d===d);return {d,acc:a.length?a.filter(x=>x.res==='first').length/a.length:0,n:a.length}});
+  const mis={};A.forEach(a=>{if(a.code&&a.code!=='ok')mis[a.code]=(mis[a.code]||0)+1});
+  const misList=Object.entries(mis).sort((a,b)=>b[1]-a[1]);
+  const bw=46,ch=byDay.length?`<svg width="${Math.max(300,byDay.length*bw+40)}" height="190" viewBox="0 0 ${Math.max(300,byDay.length*bw+40)} 190" role="img" aria-label="Right first time by day">
+    <line x1="30" y1="150" x2="${byDay.length*bw+36}" y2="150" stroke="var(--rule)"/><text x="0" y="24" font-size="12" fill="var(--muted)">100%</text><text x="0" y="152" font-size="12" fill="var(--muted)">0%</text>
+    ${byDay.map((b,i)=>{const h=Math.round(b.acc*120);return `<rect x="${40+i*bw}" y="${150-h}" width="${bw-14}" height="${h}" rx="4" fill="var(--line)"/><text x="${40+i*bw+(bw-14)/2}" y="${145-h}" text-anchor="middle" font-size="12" fill="currentColor">${Math.round(b.acc*100)}%</text><text x="${40+i*bw+(bw-14)/2}" y="170" text-anchor="middle" font-size="11" fill="var(--muted)">${dayLabel(b.d)}</text>`}).join('')}</svg>`:'<p class="muted">No rides yet. The chart fills in after her first ride.</p>';
+  app.innerHTML=`<section class="parent"><div class="top"><div><h1 class="display">Parent view</h1><p class="sub">How Yu En is doing: ${dayInfo().done} of ${TOTAL_DAYS} days done.</p></div><button class="link" id="back">Back to the map</button></div>
+  <div class="kpis" style="margin-top:20px">
+    <div class="card kpi"><b>${dayInfo().done} / ${TOTAL_DAYS}</b><span>days practised</span></div>
+    <div class="card kpi"><b>${A.length}</b><span>questions done</span></div>
+    <div class="card kpi"><b>${pct(A)}</b><span>right first time (all)</span></div>
+    <div class="card kpi"><b>${pct(A.slice(-15))}</b><span>right first time (last 15)</span></div>
+  </div>
+  <h2>Backup</h2><div class="card backup ${needBackup()?'warn':''}">
+    <p id="bkStatus">${backupStatus()}</p>
+    <p class="muted" id="persist" style="font-size:16px"></p>
+    <div class="actions"><button class="btn" id="bkSave">Download backup</button><button class="btn soft" id="bkLoad">Restore from backup</button><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
+    <p class="msg" id="bkMsg" role="status"></p>
+  </div>
+  <h2>Right first time, by day</h2><div class="card tablewrap">${ch}</div>
+  <h2>By topic</h2><div class="card tablewrap"><table><tr><th>Topic</th><th>Done</th><th>First time</th><th>Fixed with clue</th><th>Fixed with guide</th><th>Still missed</th><th>Stars</th></tr>
+  ${Object.keys(SKILLS).map(k=>{const s=skillStats(k);return `<tr><td>${SKILLS[k].name}</td><td>${s.n}</td><td>${s.first}</td><td>${s.retry}</td><td>${s.fixed}</td><td>${s.missed}</td><td>${starHTML(s.stars)}</td></tr>`}).join('')}</table></div>
+  <h2>Mistakes she is making</h2><div class="card">${misList.length?`<table>${misList.map(([c,n])=>`<tr><td>${MISTAKES[c]||c}</td><td>${n}×</td></tr>`).join('')}</table>`:'<p class="muted">Nothing yet. Her first wrong answer on each question is logged here by type.</p>'}</div>
+  <h2>Recent rides</h2><div class="card tablewrap">${S.length?`<table><tr><th>Day</th><th>Date</th><th>Type</th><th>Right first time</th><th>Time taken</th></tr>${S.slice(-10).reverse().map(s=>`<tr><td>${s.mode==='daily'?dayLabel(s.d):'–'}</td><td>${nice(s.d)}</td><td>${s.mode==='daily'?'Daily ride':s.mode==='extra'?'Extra ride':'Topic practice'}</td><td>${s.first} / ${s.n}</td><td>${Math.max(1,Math.round(s.secs/60))} min</td></tr>`).join('')}</table>`:'<p class="muted">No rides yet.</p>'}</div>
+  <h2>How it works</h2><div class="card"><p>Each daily ride has 2 warm-ups (time, fractions) and 3 word problems, weighted towards her weakest topics and anything she missed in the last 3 days. When she gets a question wrong, she first gets a clue matched to her specific mistake and one more try. If she's still wrong, a guided fix walks her through it step by step, then she answers a twin question with new numbers. Even when she is right, she goes through the worked steps before moving on, and can open the hands-on guide.</p>
+  <p><button class="pill" id="reset">Reset all progress</button></p></div></section>`;
+  document.getElementById('back').onclick=()=>{view='home';render()};
+  document.getElementById('bkSave').onclick=downloadBackup;
+  const bf=document.getElementById('bkFile');document.getElementById('bkLoad').onclick=()=>{bf.value='';bf.click()};bf.onchange=()=>{const m=document.getElementById('bkMsg');m.textContent='';if(bf.files[0])restoreBackup(bf.files[0])};
+  showPersist();
+  document.getElementById('reset').onclick=()=>askConfirm('Erase all progress?','All rides, stars and mistake records will be deleted. This cannot be undone.','Erase everything','Cancel',()=>{state=blank();save();render()},true);
+}
+// ==GAMES START==
+const GAMES={
+  catch:{name:'Star Catcher',icon:'⭐',how:'Move the basket with your mouse or the ← → keys. Catch the stars (gold stars are worth 3!). Dodge the rain clouds.'},
+  match:{name:'Maths Memory',icon:'🃏',how:'Flip two cards at a time. Find the pairs that mean the same thing, like 3/4 and 6/8.'},
+  pop:{name:'Balloon Pop',icon:'🎈',how:'Click two balloons that add up to the target number to pop them.'},
+  dash:{name:'Durian Dash',icon:'🏃',how:'Press Space (or click) to jump over the durians. Jump into the coins to collect them!'}
+};
+const GAME_ORDER=['catch','match','pop','dash'],PLAYS_PER_DAY=3;
+let gameStop=null;
+function gameFor(day){day=Math.max(1,day);return {id:GAME_ORDER[(day-1)%4],level:Math.min(4,Math.ceil(day/4)),day}}
+function gstate(){if(!state.games)state.games={plays:{},best:{}};return state.games}
+function playsLeft(){return PLAYS_PER_DAY-(gstate().plays[today()]||0)}
+
+function renderGame(){
+  const g=gameFor(dayInfo().done),G=GAMES[g.id];
+  app.innerHTML=`<div class="qbar"><button class="link" id="gback">Back to the map</button><span class="muted" id="plays"></span></div>
+  <section class="gcard"><h1 class="display">${G.icon} ${G.name}</h1><p class="ghow">${G.how}</p><div class="ghud" id="hud" aria-live="off"></div><div id="stage"></div></section>`;
+  document.getElementById('gback').onclick=()=>{view='home';render()};
+  gameStartPanel(g);
+}
+function gameStartPanel(g){
+  const st=document.getElementById('stage'),left=playsLeft(),best=gstate().best[g.id]||0;
+  document.getElementById('plays').textContent=`Plays left today: ${left}`;document.getElementById('hud').textContent='';
+  st.innerHTML=left>0?`<div class="gpanel"><p class="display" style="font-size:24px">Day ${g.day} reward, level ${g.level}</p>${best?`<p class="muted">Your best: ${best}</p>`:''}<button class="btn" id="gstart">Start the game</button></div>`
+    :`<div class="gpanel"><p class="display" style="font-size:24px">That's all ${PLAYS_PER_DAY} plays for today 🎉</p><p class="muted">Finish tomorrow's ride to unlock a new game.</p></div>`;
+  const b=document.getElementById('gstart');if(b){b.focus();b.onclick=()=>{
+    gstate().plays[today()]=(gstate().plays[today()]||0)+1;save();
+    document.getElementById('plays').textContent=`Plays left today: ${playsLeft()}`;
+    b.blur();st.innerHTML='';
+    gameStop=GAME_FNS[g.id](st,g.level,document.getElementById('hud'),score=>{gameStop=null;gameEnd(g,score)});
+  }}
+}
+function gameEnd(g,score){
+  const gs=gstate(),best=gs.best[g.id]||0,nb=score>best;if(nb)gs.best[g.id]=score;save();
+  const st=document.getElementById('stage');if(!st)return;const left=playsLeft();
+  st.innerHTML=`<div class="gpanel"><p class="muted">Your score</p><p class="big">${score}</p><p class="display" style="font-size:22px">${nb?'New best score! 🏆':`Best: ${best}`}</p>
+  <div class="actions" style="justify-content:center">${left>0?`<button class="btn" id="gagain">Play again (${left} left)</button>`:''}<button class="btn soft" id="gmap">Back to the map</button></div></div>`;
+  const a=document.getElementById('gagain');if(a)a.onclick=()=>gameStartPanel(g);
+  document.getElementById('gmap').onclick=()=>{view='home';render()};
+}
+function makeCanvas(st){const c=document.createElement('canvas');c.width=760;c.height=420;c.className='gcanvas';st.appendChild(c);const x=c.getContext('2d');return [c,x]}
+function hud(el,parts){const s=parts.join('&nbsp;&nbsp;&nbsp;');if(el._s!==s){el._s=s;el.innerHTML=s}}
+function hearts(n){return '❤️'.repeat(Math.max(0,n))+'<span style="opacity:.25">'+'❤️'.repeat(Math.max(0,3-n))+'</span>'}
+function starPath(x,cx,cy,r){x.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*0.45:r;x.lineTo(cx+rr*Math.cos(a),cy+rr*Math.sin(a))}x.closePath()}
+function cloud(x,cx,cy,s){x.beginPath();x.arc(cx-14*s,cy,13*s,0,7);x.arc(cx,cy-9*s,17*s,0,7);x.arc(cx+15*s,cy,13*s,0,7);x.fill()}
+
+// ---- Star Catcher ----
+function gameCatch(st,level,hudEl,end){
+  const [c,x]=makeCanvas(st);const DUR=60;
+  let bx=380,items=[],pops=[],score=0,hp=3,t0=performance.now(),last=t0,spawn=0,keys={},raf,flash=0;
+  const mv=e=>{const r=c.getBoundingClientRect();bx=(e.clientX-r.left)/r.width*760};
+  const kd=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){keys[e.key]=true;e.preventDefault()}},ku=e=>{keys[e.key]=false};
+  c.addEventListener('pointermove',mv);c.addEventListener('pointerdown',mv);addEventListener('keydown',kd);addEventListener('keyup',ku);
+  const stop=()=>{cancelAnimationFrame(raf);removeEventListener('keydown',kd);removeEventListener('keyup',ku)};
+  function loop(now){
+    const dt=Math.min(50,now-last)/1000;last=now;const el=(now-t0)/1000,left=Math.max(0,DUR-el);
+    if(keys.ArrowLeft)bx-=560*dt;if(keys.ArrowRight)bx+=560*dt;bx=Math.max(55,Math.min(705,bx));
+    spawn-=dt;if(spawn<=0){spawn=Math.max(0.3,0.85-level*0.08-el*0.005);const r=Math.random();
+      items.push({x:30+Math.random()*700,y:-24,v:(130+level*28+el*2.2)*(0.8+Math.random()*0.5),k:r<0.12?'gold':r<0.34+level*0.03?'cloud':'star'})}
+    for(const it of items){it.y+=it.v*dt;if(!it.hit&&it.y>350&&it.y<392&&Math.abs(it.x-bx)<60){it.hit=true;
+      if(it.k==='cloud'){hp--;flash=0.35}else{const p=it.k==='gold'?3:1;score+=p;pops.push({x:it.x,y:345,t:0.7,s:'+'+p})}}}
+    items=items.filter(i=>!i.hit&&i.y<450);flash=Math.max(0,flash-dt);
+    const g=x.createLinearGradient(0,0,0,420);g.addColorStop(0,'#1B2A5C');g.addColorStop(1,'#4A6FB5');x.fillStyle=g;x.fillRect(0,0,760,420);
+    x.fillStyle='rgba(255,255,255,.5)';for(let i=0;i<30;i++){x.fillRect((i*97)%760,(i*53)%300,2,2)}
+    for(const it of items){if(it.k==='cloud'){x.fillStyle='#9AA8BC';cloud(x,it.x,it.y,1.1);x.strokeStyle='#6FA8FF';x.lineWidth=2;for(let k=-1;k<=1;k++){x.beginPath();x.moveTo(it.x+k*12,it.y+14);x.lineTo(it.x+k*12-3,it.y+24);x.stroke()}}
+      else{starPath(x,it.x,it.y,it.k==='gold'?20:14);x.fillStyle=it.k==='gold'?'#FFB300':'#FFF3A0';x.fill();if(it.k==='gold'){x.strokeStyle='#fff';x.lineWidth=2;x.stroke()}}}
+    x.fillStyle='#2E7D4F';x.fillRect(0,400,760,20);
+    x.fillStyle='#C98A3C';x.beginPath();x.moveTo(bx-58,362);x.lineTo(bx+58,362);x.lineTo(bx+44,398);x.lineTo(bx-44,398);x.closePath();x.fill();
+    x.strokeStyle='#8A5A22';x.lineWidth=3;x.stroke();for(let k=-2;k<=2;k++){x.beginPath();x.moveTo(bx+k*20,364);x.lineTo(bx+k*16,396);x.stroke()}
+    x.font='bold 26px Fredoka, sans-serif';x.textAlign='center';for(const p of pops){p.t-=dt;p.y-=40*dt;x.fillStyle=`rgba(255,255,255,${Math.max(0,p.t)})`;x.fillText(p.s,p.x,p.y)}pops=pops.filter(p=>p.t>0);
+    if(flash>0){x.fillStyle=`rgba(120,160,255,${flash})`;x.fillRect(0,0,760,420)}
+    hud(hudEl,[`Score <b>${score}</b>`,hearts(hp),`Time <b>${Math.ceil(left)}s</b>`]);
+    if(hp<=0||left<=0){stop();end(score)}else raf=requestAnimationFrame(loop);
+  }
+  raf=requestAnimationFrame(loop);return stop;
+}
+
+// ---- Maths Memory ----
+function matchPairs(level){
+  const n=level<=2?6:8,out=[],used=new Set();
+  const makers=[
+    ()=>{const [p,q]=R.pick([[1,2],[1,3],[2,3],[1,4],[3,4],[2,5],[1,5],[5,6]]);const k=R.int(2,3);return [`${p}/${q}`,`${p*k}/${q*k}`]},
+    ()=>{const h=R.int(1,2),m=R.pick([5,10,15,20,30,45]);return [`${h} h ${m} min`,`${h*60+m} min`]},
+    ()=>{const t=R.int(13,20)*60+R.pick([0,15,30,45]);return [t12(t),t24(t)]},
+    ()=>{const c=R.int(11,49)*5;return [money(c),`${c}¢`]},
+    ()=>{const a=R.int(3,9),b=R.int(3,9);return [`${a} × ${b}`,`${a*b}`]},
+    ()=>{const a=R.int(2,9)*100+R.int(1,9)*10;const tn=(a%100)/10;return [`${Math.floor(a/100)} hundreds ${tn} ten${tn>1?'s':''}`,`${a}`]}
+  ];
+  let g=0,order=R.shuffle(makers);while(out.length<n&&g++<200){const pr=order[g%order.length]();if(used.has(pr[0])||used.has(pr[1]))continue;used.add(pr[0]);used.add(pr[1]);out.push(pr)}
+  return out;
+}
+function gameMatch(st,level,hudEl,end){
+  const pairs=matchPairs(level),DUR=level<=2?90:120;
+  let cards=R.shuffle(pairs.flatMap((p,i)=>[{t:p[0],id:i},{t:p[1],id:i}])),open=[],found=0,moves=0,t0=performance.now(),raf,lock=false,over=false;
+  st.innerHTML=`<div class="mgrid" style="grid-template-columns:repeat(${cards.length>12?4:4},1fr)">${cards.map((c,i)=>`<button class="mcard" data-i="${i}" aria-label="Hidden card"><span class="mf">?</span><span class="mb">${c.t}</span></button>`).join('')}</div>`;
+  const els=[...st.querySelectorAll('.mcard')];
+  const finish=()=>{if(over)return;over=true;cancelAnimationFrame(raf);const left=Math.max(0,DUR-(performance.now()-t0)/1000);end(found*10+(found===pairs.length?Math.round(left):0))};
+  els.forEach((b,i)=>b.onclick=()=>{
+    if(lock||b.classList.contains('up')||over)return;b.classList.add('up');b.setAttribute('aria-label',cards[i].t);open.push(i);
+    if(open.length===2){moves++;const [a,z]=open;
+      if(cards[a].id===cards[z].id){els[a].classList.add('got');els[z].classList.add('got');open=[];found++;if(found===pairs.length)setTimeout(finish,500)}
+      else{lock=true;setTimeout(()=>{els[a].classList.remove('up');els[z].classList.remove('up');els[a].setAttribute('aria-label','Hidden card');els[z].setAttribute('aria-label','Hidden card');open=[];lock=false},900)}}
+  });
+  function tick(){const left=Math.max(0,DUR-(performance.now()-t0)/1000);hud(hudEl,[`Pairs <b>${found} / ${pairs.length}</b>`,`Moves <b>${moves}</b>`,`Time <b>${Math.ceil(left)}s</b>`]);if(left<=0)finish();else if(!over)raf=requestAnimationFrame(tick)}
+  raf=requestAnimationFrame(tick);return ()=>{over=true;cancelAnimationFrame(raf)};
+}
+
+// ---- Balloon Pop ----
+function gameBalloon(st,level,hudEl,end){
+  const T=[10,20,100,1000][level-1],DUR=60;
+  const part=()=>{if(T===10)return R.int(1,9);if(T===20)return R.int(2,18);if(T===100)return R.int(1,19)*5;return R.int(1,19)*50};
+  st.innerHTML=`<div class="bstage"><div class="btarget">Make <b>${T}</b></div></div>`;const box=st.querySelector('.bstage');
+  const cols=['#E0567F','#1F5FBF','#0B8A4E','#E89A00','#8E44AD','#D94F30'];
+  let bl=[],sel=null,score=0,t0=performance.now(),last=t0,spawn=0,raf,over=false;
+  function add(v,delay){const b=document.createElement('button');b.className='balloon';b.textContent=v;b.style.setProperty('--c',R.pick(cols));
+    const o={el:b,v,x:5+Math.random()*82,y:108+delay,sp:(9+level*1.5)*(0.8+Math.random()*0.4)};b.style.left=o.x+'%';
+    b.onclick=()=>pick(o);box.appendChild(b);bl.push(o)}
+  function pick(o){if(over||o.gone)return;
+    if(!sel){sel=o;o.el.classList.add('sel');return}
+    if(sel===o){o.el.classList.remove('sel');sel=null;return}
+    if(sel.v+o.v===T){[sel,o].forEach(b=>{b.gone=true;b.el.classList.add('popped');setTimeout(()=>b.el.remove(),300)});score+=2;sel=null}
+    else{const a=sel;[a,o].forEach(b=>{b.el.classList.remove('sel');b.el.classList.add('shake');setTimeout(()=>b.el.classList.remove('shake'),400)});sel=null}}
+  function loop(now){const dt=Math.min(50,now-last)/1000;last=now;const left=Math.max(0,DUR-(now-t0)/1000);
+    spawn-=dt;if(spawn<=0&&bl.filter(b=>!b.gone).length<10){spawn=2.2-level*0.2;const a=part();add(a,0);add(T-a,8+Math.random()*10);if(Math.random()<0.4)add(part(),16)}
+    for(const b of bl){if(b.gone)continue;b.y-=b.sp*dt;b.el.style.top=b.y+'%';if(b.y<-22){b.gone=true;b.el.remove();if(sel===b)sel=null}}
+    bl=bl.filter(b=>!b.gone||b.el.isConnected);
+    hud(hudEl,[`Target <b>${T}</b>`,`Score <b>${score}</b>`,`Time <b>${Math.ceil(left)}s</b>`]);
+    if(left<=0){over=true;end(score)}else raf=requestAnimationFrame(loop)}
+  raf=requestAnimationFrame(loop);return ()=>{over=true;cancelAnimationFrame(raf)};
+}
+
+// ---- Durian Dash ----
+function durian(x,cx,cy,r){x.fillStyle='#7BA23F';x.beginPath();for(let i=0;i<24;i++){const a=i*Math.PI/12,rr=i%2?r:r*1.22;x.lineTo(cx+rr*Math.cos(a),cy+rr*0.9*Math.sin(a))}x.closePath();x.fill();x.strokeStyle='#4E6B22';x.lineWidth=2;x.stroke();x.fillStyle='#5C4326';x.fillRect(cx-3,cy-r*1.2,6,8)}
+function gameDash(st,level,hudEl,end){
+  const [c,x]=makeCanvas(st),DUR=60,G=2000,GY=350;
+  let py=GY,vy=0,obs=[],coins=[],score=0,hp=3,inv=0,t0=performance.now(),last=t0,next=1.2,cnext=0.8,raf,scroll=0;
+  const jump=e=>{if(e&&e.type==='keydown'){if(e.code!=='Space'&&e.key!=='ArrowUp')return;e.preventDefault()}if(py>=GY-1)vy=-760};
+  addEventListener('keydown',jump);c.addEventListener('pointerdown',jump);
+  const stop=()=>{cancelAnimationFrame(raf);removeEventListener('keydown',jump)};
+  const blocks=[...Array(9)].map((_,i)=>({x:i*110,h:120+((i*37)%90),c:['#F2C4B5','#B8D8E8','#F5E1A4','#CFE3C4'][i%4]}));
+  function loop(now){const dt=Math.min(50,now-last)/1000;last=now;const el=(now-t0)/1000,left=Math.max(0,DUR-el),sp=280+level*40+el*3;
+    vy+=G*dt;py=Math.min(GY,py+vy*dt);if(py>=GY)vy=0;inv=Math.max(0,inv-dt);scroll+=sp*dt;
+    next-=dt;if(next<=0){obs.push({x:800,passed:false});next=Math.max(0.75,1.5-level*0.12)+Math.random()*0.9}
+    cnext-=dt;if(cnext<=0){const h=GY-60-Math.random()*120;for(let k=0;k<3;k++)coins.push({x:820+k*34,y:h});cnext=1.6+Math.random()*1.4}
+    for(const o of obs){o.x-=sp*dt;if(!o.hit&&Math.abs(o.x-120)<34&&py>GY-40&&inv<=0){o.hit=true;hp--;inv=1.2}if(!o.passed&&o.x<90){o.passed=true;if(!o.hit)score+=1}}
+    for(const k of coins){k.x-=sp*dt;if(!k.got&&Math.abs(k.x-120)<26&&Math.abs(k.y-(py-24))<34){k.got=true;score+=2}}
+    obs=obs.filter(o=>o.x>-40);coins=coins.filter(k=>k.x>-20&&!k.got);
+    x.fillStyle='#BFE3F7';x.fillRect(0,0,760,420);
+    for(const b of blocks){const bx=((b.x-scroll*0.3)%990+990)%990-110;x.fillStyle=b.c;x.fillRect(bx,GY+14-b.h,90,b.h);x.fillStyle='rgba(255,255,255,.7)';for(let r=0;r<b.h-20;r+=22)for(let q=0;q<3;q++)x.fillRect(bx+10+q*27,GY+22-b.h+r,14,10)}
+    x.fillStyle='#8C8C8C';x.fillRect(0,GY+14,760,56);x.fillStyle='#fff';for(let i=0;i<10;i++)x.fillRect(((i*100-scroll)%1000+1000)%1000-40,GY+40,50,5);
+    for(const k of coins){x.fillStyle='#FFC21A';x.beginPath();x.arc(k.x,k.y,11,0,7);x.fill();x.fillStyle='#A6700A';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText('$',k.x,k.y+5)}
+    for(const o of obs)durian(x,o.x,GY-2,20);
+    if(!(inv>0&&Math.floor(inv*10)%2)){x.font='44px serif';x.textAlign='center';x.fillText('🐱',120,py+4)}
+    hud(hudEl,[`Score <b>${score}</b>`,hearts(hp),`Time <b>${Math.ceil(left)}s</b>`]);
+    if(hp<=0||left<=0){stop();end(score)}else raf=requestAnimationFrame(loop)}
+  raf=requestAnimationFrame(loop);return stop;
+}
+const GAME_FNS={catch:gameCatch,match:gameMatch,pop:gameBalloon,dash:gameDash};
+// ==GAMES END==
+
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){}
+render();
+</script>
+</body>
+</html>
