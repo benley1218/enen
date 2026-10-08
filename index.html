@@ -214,6 +214,17 @@ th{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;color:var(--muted)
 .balloon.shake{animation:shake .4s}
 @keyframes shake{25%{margin-left:-6px}75%{margin-left:6px}}
 .backup.warn{border-color:var(--sun);background:var(--sun-soft)}
+.stn{cursor:pointer}.stn:focus{outline:none}.stn:focus-visible circle:first-child{stroke:var(--blue);stroke-width:3}
+.redo{display:flex;flex-wrap:wrap;gap:10px}
+.rchip{border:2px solid var(--rule);background:var(--paper);border-radius:14px;padding:8px 14px;display:flex;flex-direction:column;align-items:flex-start;min-width:110px}
+.rchip:hover{border-color:var(--line)}.rchip span{font-size:14px;color:var(--muted)}
+.ansPick{font-weight:700}.ansPick select{font:inherit;font-size:17px;padding:6px 10px;border-radius:10px;border:2px solid var(--rule);background:var(--paper);color:var(--ink);max-width:100%}
+.alist{padding-left:22px;margin:14px 0 0}
+.aitem{padding:12px 0;border-bottom:1px solid var(--rule)}.aitem:last-child{border-bottom:0}
+.ahead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.ares{font-weight:700;font-size:16px}
+.aq{margin:6px 0;font-size:17px}
+.atab{font-size:16px}.atab td{white-space:normal;vertical-align:top;padding:5px 8px}.atab td:first-child{color:var(--muted);white-space:nowrap;width:1%}
+.atab .ok{color:var(--line);font-weight:700}.atab .no{color:var(--coral);font-weight:700}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -223,10 +234,14 @@ th{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;color:var(--muted)
 "use strict";
 // ==GEN START==
 const pad=n=>String(n).padStart(2,'0');
+let RNG=Math.random;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296}}
+function withSeed(seed,fn){const old=RNG;RNG=mulberry32(seed);try{return fn()}finally{RNG=old}}
 const R={
-  int:(a,b)=>a+Math.floor(Math.random()*(b-a+1)),
-  pick:a=>a[Math.floor(Math.random()*a.length)],
-  shuffle:a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+  rand:()=>RNG(),
+  int:(a,b)=>a+Math.floor(RNG()*(b-a+1)),
+  pick:a=>a[Math.floor(RNG()*a.length)],
+  shuffle:a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(RNG()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 };
 const NAMES=['Mei Xin','Aisyah','Rahul','Jun Hao','Priya','Farhan','Wei Ling','Hui Min','Arjun','Nurul'];
 const money=c=>'$'+(c/100).toFixed(2);
@@ -319,7 +334,7 @@ function genTimeEnd(){
     other:`Read the start time on the clock again, then add ${D}.`
   };
   const endH=Math.floor(end/60);
-  return {skill:'timeEnd',
+  return {skill:'timeEnd',brief:`Clock showed ${t12(start)}`,
     text:ctx+' Give your answer in <b>24-hour clock</b>.',
     figure:`<div class="figure">${clockSVG(start)}</div>`,
     options:makeOptions(t24(end),ds,()=>t24(end+R.pick([-60,60,-10,10,-5,5]))),answer:t24(end),why,
@@ -374,7 +389,7 @@ function genFraction(){
     copy:`When the bottom number changes, the top number must change too, so the fraction stays the same size.`,
     other:`Make ${c}/${d} simpler first, then find the matching fraction with ${b} at the bottom.`
   };
-  return {skill:'fraction',
+  return {skill:'fraction',brief:`? / ${b} = ${c} / ${d}`,
     text:'What is the missing number in the box?',
     figure:`<div class="figure"><span class="fr"><span class="frac"><span class="box"></span><i></i><span>${b}</span></span> = ${frac(c,d)}</span></div>`,
     options:makeOptions(String(ans),ds,()=>String(R.int(1,Math.max(6,b+2)))),answer:String(ans),why,
@@ -407,7 +422,7 @@ function genMoney(){
   };
   const tag=(nm,p)=>`<div class="ptag"><div class="n">${nm}</div><div>${money(p)} each</div></div>`;
   const walkVisual=barCompare(T,M*100,who);
-  return {skill:'money',walkVisual,
+  return {skill:'money',walkVisual,brief:`${i1[0]} ${money(a)}, ${i2[0]} ${money(b)}, ${i3[0]} ${money(c)} each`,
     text:`${who} has <b>$${M}</b>. ${who} would like to buy a ${i1[0]}, a ${i2[0]} and <b>${n} ${plural(i3[0])}</b>. How much more money does ${who} need to buy these items?`,
     figure:`<div class="figure tags">${tag(i1[0],a)}${tag(i2[0],b)}${tag(i3[0],c)}</div>`,
     options:makeOptions(money(ans),ds,()=>money(ans+R.pick([-100,100,-50,50,-10,10]))),answer:money(ans),why,
@@ -521,7 +536,7 @@ function squaresFig(L){
   <text x="34" y="116" text-anchor="end" style="paint-order:stroke"  font-size="16" font-weight="700" fill="currentColor">${L} cm</text></svg>`;
 }
 function genSquares(){
-  const a=R.int(4,9),d=R.int(1,4),b=a+d,L=a+b,P=4*d,mode=Math.random()<0.6?'side':'area';
+  const a=R.int(4,9),d=R.int(1,4),b=a+d,L=a+b,P=4*d,mode=R.rand()<0.6?'side':'area';
   const base=`In the figure, Square C and Square D are joined at a corner Q. PQR is a straight line measuring <b>${L} cm</b>. The perimeter of Square C is <b>${P} cm shorter</b> than the perimeter of Square D. `;
   const why={
     usedP:`${P} cm is the difference in PERIMETER (all 4 sides). Each side is only different by ${P} ÷ 4 = ${d} cm.`,
@@ -565,7 +580,7 @@ const GEN={timeEnd:genTimeEnd,minutes:genMinutes,fraction:genFraction,money:genM
 // ---------- storage ----------
 const KEY='yuen-maths-line-v1';
 function blank(){return {v:1,sessions:[],attempts:[],games:{plays:{},best:{}},updatedAt:0}}
-function loadLocal(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.v===1)return s}catch(e){}return blank()}
+function loadLocal(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.v===1)return migrate(s)}catch(e){}return blank()}
 let state=loadLocal(),remote=null,saving=Promise.resolve();
 function save(){
   state.updatedAt=Date.now();
@@ -579,7 +594,7 @@ function save(){
     const id=await user.id();if(!id)return;
     const ref=db.collection('data/users/'+id).doc('maths-line');
     const snap=await ref.get();
-    if(snap.exists){const d=snap.data();if(d&&d.updatedAt>(state.updatedAt||0)){try{const s=JSON.parse(d.json);if(s&&s.v===1){state=s;try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}if(view!=='quest')render()}}catch(e){}}}
+    if(snap.exists){const d=snap.data();if(d&&d.updatedAt>(state.updatedAt||0)){try{const s=JSON.parse(d.json);if(s&&s.v===1){state=migrate(s);try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}if(view!=='quest')render()}}catch(e){}}}
     remote=ref;
     if(!snap.exists||(snap.data()||{}).updatedAt<(state.updatedAt||0))save();
   }catch(e){}
@@ -636,10 +651,23 @@ function askConfirm(title,body,okLabel,cancelLabel,onOk,danger){
   d.querySelector('#dlgNo').focus();
 }
 function render(){if(gameStop){gameStop();gameStop=null}({home:renderHome,quest:renderQuest,done:renderDone,parent:renderParent,game:renderGame})[view]();window.scrollTo(0,0)}
-const TOTAL_DAYS=15;
-function dayInfo(){const days=[...new Set(state.sessions.filter(s=>s.mode==='daily').map(s=>s.d))].sort();const dt=days.includes(today());return {days,done:days.length,cur:dt?days.length:days.length+1,dt}}
-function doneToday(){return dayInfo().dt}
-function dayLabel(d){const i=dayInfo().days.indexOf(d);return i>=0?'Day '+(i+1):nice(d)}
+const TOTAL_DAYS=23;
+function migrate(st){
+  if(!st)return st;let k=0;
+  const seen=new Set();
+  (st.sessions||[]).forEach(x=>{if(x.mode==='daily'&&x.day==null){if(seen.has(x.d)){x.mode='extra';return}seen.add(x.d);x.day=++k}else if(x.mode==='daily')k=Math.max(k,x.day)});
+  if(!st.dayPlans)st.dayPlans={};if(!st.games)st.games={plays:{},best:{}};
+  return st;
+}
+function dayInfo(){const done=state.sessions.filter(s=>s.mode==='daily').reduce((m,s)=>Math.max(m,s.day||0),0);return {done,cur:done+1}}
+function dayRuns(n){return state.sessions.filter(s=>(s.mode==='daily'||s.mode==='redo')&&s.day===n)}
+function sessLabel(s){return s.mode==='daily'?`Day ${s.day}`:s.mode==='redo'?`Day ${s.day} (redo)`:s.mode==='extra'?'Extra ride':'Topic practice'}
+function dayPlan(n){
+  state.dayPlans=state.dayPlans||{};
+  if(!state.dayPlans[n]){state.dayPlans[n]={skills:planDaily(),seeds:Array.from({length:5},()=>Math.floor(Math.random()*2147483647))};save()}
+  return state.dayPlans[n];
+}
+function startDay(n){const pl=dayPlan(n);startQuest(n<=dayInfo().done?'redo':'daily',pl.skills,{day:n,seeds:pl.seeds})}
 
 function lineSVG(){
   const {done,cur}=dayInfo(),gap=66,x0=30,n=TOTAL_DAYS;const W=x0*2+gap*n;
@@ -648,9 +676,11 @@ function lineSVG(){
   for(let i=1;i<=n;i++){
     const x=x0+gap*(i-1),isT=i===cur,dn=i<=done;
     if(isT)s+=`<text x="${x}" y="20" text-anchor="middle" font-size="22">🚆</text>`;
+    if(dn||isT)s+=`<g class="stn" data-day="${i}" role="button" tabindex="0" aria-label="${dn?'Redo':'Start'} Day ${i}"><circle cx="${x}" cy="60" r="30" fill="transparent"/>`;
     s+=`<circle cx="${x}" cy="50" r="${isT?14:11}" fill="${dn?'var(--line)':'var(--paper)'}" stroke="${isT?'var(--sun)':'var(--line)'}" stroke-width="${isT?6:4}"/>`;
     if(dn)s+=`<path d="M${x-5} 50 l4 4 l7 -8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
     s+=`<text x="${x}" y="88" text-anchor="middle" class="st-label${isT?' today':''}">Day ${i}</text>`;
+    if(dn||isT)s+='</g>';
   }
   const xe=x0+gap*n;
   s+=`<rect x="${xe-18}" y="32" width="36" height="36" rx="8" fill="var(--sun)" stroke="var(--ink)" stroke-width="3"/><text x="${xe}" y="57" text-anchor="middle" font-size="18">⭐</text><text x="${xe}" y="88" text-anchor="middle" class="st-label today">Exam</text></svg>`;
@@ -659,36 +689,44 @@ function lineSVG(){
 function starHTML(n){return `<span class="stars" aria-label="${n} of 3 stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(3-n)}</span></span>`}
 
 function renderHome(){
-  const {dt,cur,done}=dayInfo();
-  const title=done>=TOTAL_DAYS?`All ${TOTAL_DAYS} days done! You're ready for the exam`:`Day ${Math.min(cur,TOTAL_DAYS)} of ${TOTAL_DAYS}`;
+  const {cur,done}=dayInfo(),all=done>=TOTAL_DAYS,nd=Math.min(cur,TOTAL_DAYS);
+  const lastG=done?gameFor(done):null,canPlay=done&&playsLeft(done)>0;
+  const title=all?`All ${TOTAL_DAYS} days done! You're ready for the exam`:`Day ${nd} of ${TOTAL_DAYS}`;
+  const doneDays=[];for(let i=1;i<=done;i++)doneDays.push(i);
   app.innerHTML=`
-  <div class="top"><div><h1 class="display">Yu En's Maths Line</h1><p class="sub">${title}. One ride a day moves your train one station.</p></div>
+  <div class="top"><div><h1 class="display">Yu En's Maths Line</h1><p class="sub">${title}. Finish a ride to unlock the next station. You can go as fast as you like!</p></div>
   <button class="link" id="toParent">For parents</button></div>
   <div class="linebox" id="linebox">${lineSVG()}</div>
   <section class="ride">
-    <div>${dt?`<h2>Day ${cur} done! 🎉</h2><p>Your train has reached Day ${cur}. Come back tomorrow for Day ${cur+1}, or do an extra ride now.</p>`
-      :`<h2>Day ${Math.min(cur,TOTAL_DAYS)} ride</h2><p>5 questions, about 15 minutes. Keep your paper and pencil ready.</p>`}</div>
-    <div class="ridebtns">${dt?`<button class="btn" id="play">${GAMES[gameFor(done).id].icon} Play today's game</button>`:''}<button class="btn ${dt?'soft':''}" id="go">${dt?'Extra ride':`Start Day ${Math.min(cur,TOTAL_DAYS)}`}</button></div>
+    <div>${all?`<h2>You finished all ${TOTAL_DAYS} days! 🎉</h2><p>Redo any Day below to practise again.</p>`
+      :`<h2>Day ${nd} ride</h2><p>5 questions, about 15 minutes. Keep your paper and pencil ready.</p>`}</div>
+    <div class="ridebtns">${all?'':`<button class="btn" id="go">Start Day ${nd}</button>`}${canPlay?`<button class="btn ${all?'':'soft'}" id="play">${GAMES[lastG.id].icon} Play Day ${done} game</button>`:''}</div>
   </section>
-  ${!dt&&cur<=TOTAL_DAYS?`<p class="teaser">🎁 Finish Day ${cur} to unlock today's game: <b>${GAMES[gameFor(cur).id].icon} ${GAMES[gameFor(cur).id].name}</b></p>`:''}
+  ${!all?`<p class="teaser">🎁 Finish Day ${nd} to unlock: <b>${GAMES[gameFor(nd).id].icon} ${GAMES[gameFor(nd).id].name}</b></p>`:''}
+  ${done?`<section class="skills"><h2>Redo a Day</h2><p class="muted" style="margin:0 0 10px">Same questions as before. Can you beat your score?</p>
+    <div class="redo">${doneDays.map(i=>{const r=dayRuns(i),best=Math.max(...r.map(x=>x.first)),lastR=r[r.length-1];return `<button class="rchip" data-redo="${i}"><b>Day ${i}</b><span>${lastR?`Last ${lastR.first}/5`:''}${r.length>1?` · Best ${best}/5`:''}</span></button>`}).join('')}</div></section>`:''}
   <section class="skills"><h2>My skills</h2>
     ${Object.keys(SKILLS).map(k=>{const s=skillStats(k);return `<div class="skill"><div><div class="nm">${SKILLS[k].name}</div><div class="nt">${s.n?`${s.n} done`:'Not tried yet'}${needsReview(k)?', practise again':''}</div></div>${starHTML(s.stars)}<button class="pill" data-skill="${k}">Practise</button></div>`}).join('')}
   </section>`;
-  const lb=document.getElementById('linebox');const idx=Math.min(cur,TOTAL_DAYS)-1;if(idx>0)lb.scrollLeft=Math.max(0,30+66*idx-lb.clientWidth/2);
-  document.getElementById('go').onclick=()=>startQuest(dt?'extra':'daily',planDaily());
-  const pl=document.getElementById('play');if(pl)pl.onclick=()=>{view='game';render()};
+  const lb=document.getElementById('linebox');const idx=nd-1;if(idx>0)lb.scrollLeft=Math.max(0,30+66*idx-lb.clientWidth/2);
+  const go=document.getElementById('go');if(go)go.onclick=()=>startDay(nd);
+  const pl=document.getElementById('play');if(pl)pl.onclick=()=>{gameDay=done;view='game';render()};
   document.getElementById('toParent').onclick=()=>{view='parent';render()};
+  app.querySelectorAll('[data-redo]').forEach(b=>b.onclick=()=>startDay(+b.dataset.redo));
+  app.querySelectorAll('.stn').forEach(g=>{const f=()=>startDay(+g.dataset.day);g.onclick=f;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});
   app.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>startQuest('skill',Array(5).fill(b.dataset.skill)));
 }
 
-function newQ(skill,avoid){let q,g=0;do{q=GEN[skill]()}while(avoid&&q.answer===avoid&&g++<6);q.phase='ask';q.sel=null;q.bad=new Set();q.t0=Date.now();return q}
-function startQuest(mode,skills){quest={mode,qs:skills.map(s=>newQ(s)),i:0,t0:Date.now(),results:[]};view='quest';render()}
+function newQ(skill,avoid,seed){let q,g=0;if(seed!=null)q=withSeed(seed,()=>GEN[skill]());else do{q=GEN[skill]()}while(avoid&&q.answer===avoid&&g++<6);q.picks=[];q.phase='ask';q.sel=null;q.bad=new Set();q.t0=Date.now();return q}
+function startQuest(mode,skills,o){o=o||{};quest={mode,day:o.day,qs:skills.map((s,i)=>newQ(s,null,o.seeds?o.seeds[i]:null)),i:0,t0:Date.now(),results:[]};view='quest';render()}
 
 function miniLine(){return `<div class="mini" aria-label="Question ${quest.i+1} of ${quest.qs.length}">${quest.qs.map((q,i)=>`${i?'<i></i>':''}<span class="${i<quest.i?'done':i===quest.i?'now':''}"></span>`).join('')}</div>`}
 
 function record(Q,res){
   state.attempts.push({d:today(),skill:Q.skill,res,code:Q.firstCode||null,secs:Math.round((Date.now()-Q.t0)/1000)});
-  quest.results.push({skill:Q.skill,res});save();
+  const plain=h=>String(h).replace(/<[^>]+>/g,'');
+  quest.results.push({skill:Q.skill,res,text:plain(Q.text)+(Q.brief?` [${Q.brief}]`:''),ans:Q.answer,picks:Q.picks.slice(),code:Q.firstCode||null,code2:Q.secondCode||null,
+    twin:Q.twin?{text:plain(Q.twin.text)+(Q.twin.brief?` [${Q.twin.brief}]`:''),ans:Q.twin.answer,pick:Q.twin.sel}:null});save();
 }
 
 function renderQuest(){
@@ -755,6 +793,7 @@ function walkHTML(Q,cur){
 function check(Q,cur){
   const opt=cur.options.find(o=>o.label===cur.sel);if(!opt)return;
   const ok=opt.label===cur.answer;
+  if(Q.phase==='ask'||Q.phase==='retry')Q.picks.push(opt.label);
   if(Q.phase==='ask'){
     if(ok){Q.res='first';Q.phase='solved';record(Q,'first')}
     else{Q.firstCode=opt.code;cur.bad.add(opt.label);cur.sel=null;Q.phase='retry'}
@@ -868,20 +907,24 @@ const WIDGETS={
 
 function finish(){
   const first=quest.results.filter(r=>r.res==='first').length;
-  state.sessions.push({d:today(),mode:quest.mode,n:quest.results.length,first,secs:Math.round((Date.now()-quest.t0)/1000)});save();
+  if(quest.mode==='redo'){const r=dayRuns(quest.day);quest.prev=r.length?r[r.length-1].first:null}
+  state.sessions.push({d:today(),mode:quest.mode,day:quest.day,n:quest.results.length,first,secs:Math.round((Date.now()-quest.t0)/1000),qs:quest.results});save();
   view='done';render();
 }
 function renderDone(){
   const rs=quest.results,first=rs.filter(r=>r.res==='first').length,fixed=rs.filter(r=>r.res==='fixed'||r.res==='retry').length,missed=rs.filter(r=>r.res==='missed').length;
-  const icon={first:'⭐',retry:'👍',fixed:'🏅',missed:'🔁'},word={first:'Right first time',retry:'Fixed it with a clue',fixed:'Fixed it with the guide',missed:'Coming back tomorrow'};
-  app.innerHTML=`<section class="done"><h1 class="display">${quest.mode==='daily'?`Day ${dayInfo().done} complete! 🚆`:'Ride complete! 🚆'}</h1>
+  const icon={first:'⭐',retry:'👍',fixed:'🏅',missed:'🔁'},word={first:'Right first time',retry:'Fixed it with a clue',fixed:'Fixed it with the guide',missed:'Will come back for more practice'};
+  const isDay=quest.mode==='daily',d=quest.day,hasNext=isDay&&d<TOTAL_DAYS;
+  app.innerHTML=`<section class="done"><h1 class="display">${isDay?`Day ${d} complete! 🚆`:quest.mode==='redo'?`Day ${d} redo complete!`:'Ride complete! 🚆'}</h1>
   <p class="big">${first} / ${rs.length}</p><p class="muted">right first time</p>
+  ${quest.mode==='redo'&&quest.prev!=null?`<p class="display" style="font-size:22px">${first>quest.prev?`Last time ${quest.prev}/5, now ${first}/5. You improved! 📈`:first===quest.prev?`Same as last time (${first}/5). Steady!`:`Last time ${quest.prev}/5. Look at the guides again and try once more.`}</p>`:''}
   ${fixed?`<p>You fixed ${fixed} question${fixed>1?'s':''} after a mistake. Fixing mistakes is how you get better.</p>`:''}
-  ${missed?`<p>${missed} question type${missed>1?'s':''} will come back tomorrow for more practice.</p>`:''}
+  ${missed?`<p>${missed} question type${missed>1?'s':''} will come back in later rides for more practice.</p>`:''}
   <ul class="rlist">${rs.map(r=>`<li><span style="font-size:24px">${icon[r.res]}</span><span><b>${SKILLS[r.skill].name}</b><br><span class="muted">${word[r.res]}</span></span></li>`).join('')}</ul>
-  <div class="actions">${quest.mode==='daily'?`<button class="btn" id="play">🎁 Play your reward: ${GAMES[gameFor(dayInfo().done).id].name}</button>`:''}<button class="btn ${quest.mode==='daily'?'soft':''}" id="home">Back to the map</button></div></section>`;
+  <div class="actions">${isDay?`<button class="btn" id="play">🎁 Play your reward: ${GAMES[gameFor(d).id].name}</button>`:''}${hasNext?`<button class="btn soft" id="nextDay">Start Day ${d+1}</button>`:''}<button class="btn soft" id="home">Back to the map</button></div></section>`;
   document.getElementById('home').onclick=()=>{view='home';render()};
-  const pl=document.getElementById('play');if(pl)pl.onclick=()=>{view='game';render()};
+  const nx=document.getElementById('nextDay');if(nx)nx.onclick=()=>startDay(d+1);
+  const pl=document.getElementById('play');if(pl)pl.onclick=()=>{gameDay=d;view='game';render()};
 }
 
 function daysSince(ds){if(!ds)return Infinity;const [y,m,d]=ds.split('-').map(Number);const t=new Date();t.setHours(0,0,0,0);return Math.round((t-new Date(y,m-1,d))/86400000)}
@@ -917,7 +960,7 @@ function restoreBackup(file){
     let st=null;try{const j=JSON.parse(r.result);st=j&&j.app==='yuen-maths-line'?j.state:null}catch(e){}
     if(!st||st.v!==1||!Array.isArray(st.sessions)||!Array.isArray(st.attempts)){msg.className='msg no';msg.textContent='That file isn\u2019t a Maths Line backup. Choose a file named like yuen-maths-backup-….json.';return}
     askConfirm('Restore this backup?',`Backup: <b>${summary(st)}</b>.<br>Now on this browser: <b>${summary(state)}</b>.<br>The progress on this browser will be replaced by the backup.`,'Restore backup','Cancel',()=>{
-      state=st;if(!state.games)state.games={plays:{},best:{}};save();render();
+      state=migrate(st);save();render();
       const m=document.getElementById('bkMsg');if(m){m.className='msg ok';m.textContent='Backup restored.'}
     });
   };
@@ -925,15 +968,15 @@ function restoreBackup(file){
 }
 function renderParent(){
   const S=state.sessions,A=state.attempts;
-  const days=[...new Set(S.map(s=>s.d))].sort();
+  const firsts=S.filter(s=>s.mode==='daily').sort((x,y)=>x.day-y.day);
   const pct=a=>a.length?Math.round(100*a.filter(x=>x.res==='first').length/a.length)+'%':'–';
-  const byDay=days.map(d=>{const a=A.filter(x=>x.d===d);return {d,acc:a.length?a.filter(x=>x.res==='first').length/a.length:0,n:a.length}});
+  const byDay=firsts.map(x=>{const r=dayRuns(x.day),bst=Math.max(...r.map(y=>y.first));return {lbl:'Day '+x.day,acc:x.n?x.first/x.n:0,best:x.n?bst/x.n:0}});
   const mis={};A.forEach(a=>{if(a.code&&a.code!=='ok')mis[a.code]=(mis[a.code]||0)+1});
   const misList=Object.entries(mis).sort((a,b)=>b[1]-a[1]);
   const bw=46,ch=byDay.length?`<svg width="${Math.max(300,byDay.length*bw+40)}" height="190" viewBox="0 0 ${Math.max(300,byDay.length*bw+40)} 190" role="img" aria-label="Right first time by day">
     <line x1="30" y1="150" x2="${byDay.length*bw+36}" y2="150" stroke="var(--rule)"/><text x="0" y="24" font-size="12" fill="var(--muted)">100%</text><text x="0" y="152" font-size="12" fill="var(--muted)">0%</text>
-    ${byDay.map((b,i)=>{const h=Math.round(b.acc*120);return `<rect x="${40+i*bw}" y="${150-h}" width="${bw-14}" height="${h}" rx="4" fill="var(--line)"/><text x="${40+i*bw+(bw-14)/2}" y="${145-h}" text-anchor="middle" font-size="12" fill="currentColor">${Math.round(b.acc*100)}%</text><text x="${40+i*bw+(bw-14)/2}" y="170" text-anchor="middle" font-size="11" fill="var(--muted)">${dayLabel(b.d)}</text>`}).join('')}</svg>`:'<p class="muted">No rides yet. The chart fills in after her first ride.</p>';
-  app.innerHTML=`<section class="parent"><div class="top"><div><h1 class="display">Parent view</h1><p class="sub">How Yu En is doing: ${dayInfo().done} of ${TOTAL_DAYS} days done.</p></div><button class="link" id="back">Back to the map</button></div>
+    ${byDay.map((b,i)=>{const h=Math.round(b.acc*120),hb=Math.round(b.best*120);return `${hb>h?`<rect x="${40+i*bw}" y="${150-hb}" width="${bw-14}" height="${hb-h}" rx="4" fill="var(--line-soft)" stroke="var(--line)" stroke-dasharray="3 3"/>`:''}<rect x="${40+i*bw}" y="${150-h}" width="${bw-14}" height="${h}" rx="4" fill="var(--line)"/><text x="${40+i*bw+(bw-14)/2}" y="${145-h}" text-anchor="middle" font-size="12" fill="currentColor">${Math.round(b.acc*100)}%</text><text x="${40+i*bw+(bw-14)/2}" y="170" text-anchor="middle" font-size="11" fill="var(--muted)">${b.lbl}</text>`}).join('')}</svg>`:'<p class="muted">No rides yet. The chart fills in after her first ride.</p>';
+  app.innerHTML=`<section class="parent"><div class="top"><div><h1 class="display">Parent view</h1><p class="sub">How Yu En is doing: ${dayInfo().done} of ${TOTAL_DAYS} Days done.</p></div><button class="link" id="back">Back to the map</button></div>
   <div class="kpis" style="margin-top:20px">
     <div class="card kpi"><b>${dayInfo().done} / ${TOTAL_DAYS}</b><span>days practised</span></div>
     <div class="card kpi"><b>${A.length}</b><span>questions done</span></div>
@@ -946,18 +989,40 @@ function renderParent(){
     <div class="actions"><button class="btn" id="bkSave">Download backup</button><button class="btn soft" id="bkLoad">Restore from backup</button><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
     <p class="msg" id="bkMsg" role="status"></p>
   </div>
-  <h2>Right first time, by day</h2><div class="card tablewrap">${ch}</div>
+  <h2>Right first time, by Day</h2><div class="card tablewrap">${ch}${byDay.some(b=>b.best>b.acc)?'<p class="muted" style="font-size:15px">Solid bar: first attempt. Dashed top: her best score after redoing that Day.</p>':''}</div>
+  <h2>Her answers</h2><div class="card" id="answers"></div>
   <h2>By topic</h2><div class="card tablewrap"><table><tr><th>Topic</th><th>Done</th><th>First time</th><th>Fixed with clue</th><th>Fixed with guide</th><th>Still missed</th><th>Stars</th></tr>
   ${Object.keys(SKILLS).map(k=>{const s=skillStats(k);return `<tr><td>${SKILLS[k].name}</td><td>${s.n}</td><td>${s.first}</td><td>${s.retry}</td><td>${s.fixed}</td><td>${s.missed}</td><td>${starHTML(s.stars)}</td></tr>`}).join('')}</table></div>
   <h2>Mistakes she is making</h2><div class="card">${misList.length?`<table>${misList.map(([c,n])=>`<tr><td>${MISTAKES[c]||c}</td><td>${n}×</td></tr>`).join('')}</table>`:'<p class="muted">Nothing yet. Her first wrong answer on each question is logged here by type.</p>'}</div>
-  <h2>Recent rides</h2><div class="card tablewrap">${S.length?`<table><tr><th>Day</th><th>Date</th><th>Type</th><th>Right first time</th><th>Time taken</th></tr>${S.slice(-10).reverse().map(s=>`<tr><td>${s.mode==='daily'?dayLabel(s.d):'–'}</td><td>${nice(s.d)}</td><td>${s.mode==='daily'?'Daily ride':s.mode==='extra'?'Extra ride':'Topic practice'}</td><td>${s.first} / ${s.n}</td><td>${Math.max(1,Math.round(s.secs/60))} min</td></tr>`).join('')}</table>`:'<p class="muted">No rides yet.</p>'}</div>
-  <h2>How it works</h2><div class="card"><p>Each daily ride has 2 warm-ups (time, fractions) and 3 word problems, weighted towards her weakest topics and anything she missed in the last 3 days. When she gets a question wrong, she first gets a clue matched to her specific mistake and one more try. If she's still wrong, a guided fix walks her through it step by step, then she answers a twin question with new numbers. Even when she is right, she goes through the worked steps before moving on, and can open the hands-on guide.</p>
+  <h2>Recent rides</h2><div class="card tablewrap">${S.length?`<table><tr><th>Day</th><th>Date</th><th>Type</th><th>Right first time</th><th>Time taken</th></tr>${S.slice(-12).reverse().map(s=>`<tr><td>${s.day?'Day '+s.day:'–'}</td><td>${nice(s.d)}</td><td>${s.mode==='daily'?'First try':s.mode==='redo'?'Redo':s.mode==='extra'?'Extra ride':'Topic practice'}</td><td>${s.first} / ${s.n}</td><td>${Math.max(1,Math.round(s.secs/60))} min</td></tr>`).join('')}</table>`:'<p class="muted">No rides yet.</p>'}</div>
+  <h2>How it works</h2><div class="card"><p>There are ${TOTAL_DAYS} Days; finishing one unlocks the next straight away, and any finished Day can be redone with the same questions. Each ride has 2 warm-ups (time, fractions) and 3 word problems, weighted towards her weakest topics and anything she missed in the last 3 days. When she gets a question wrong, she first gets a clue matched to her specific mistake and one more try. If she's still wrong, a guided fix walks her through it step by step, then she answers a twin question with new numbers. Even when she is right, she goes through the worked steps before moving on, and can open the hands-on guide.</p>
   <p><button class="pill" id="reset">Reset all progress</button></p></div></section>`;
   document.getElementById('back').onclick=()=>{view='home';render()};
   document.getElementById('bkSave').onclick=downloadBackup;
   const bf=document.getElementById('bkFile');document.getElementById('bkLoad').onclick=()=>{bf.value='';bf.click()};bf.onchange=()=>{const m=document.getElementById('bkMsg');m.textContent='';if(bf.files[0])restoreBackup(bf.files[0])};
-  showPersist();
+  showPersist();renderAnswers();
   document.getElementById('reset').onclick=()=>askConfirm('Erase all progress?','All rides, stars and mistake records will be deleted. This cannot be undone.','Erase everything','Cancel',()=>{state=blank();save();render()},true);
+}
+
+let ansSel=null;
+function renderAnswers(){
+  const box=document.getElementById('answers');if(!box)return;
+  const list=state.sessions.map((x,i)=>({x,i})).filter(o=>Array.isArray(o.x.qs)&&o.x.qs.length&&o.x.qs[0].text).reverse();
+  if(!list.length){box.innerHTML='<p class="muted">Her answers appear here after her next ride. Each question shows what she picked, the correct answer and the type of mistake.</p>';return}
+  if(ansSel==null||!list.some(o=>o.i===ansSel))ansSel=list[0].i;
+  const ss=state.sessions[ansSel];
+  const res={first:['✅','Right first time'],retry:['👍','Right on 2nd try (after a clue)'],fixed:['🏅','Fixed with the guide, twin right'],missed:['🔁','Still missed after the guide']};
+  const sameDay=ss.day?dayRuns(ss.day):[];
+  box.innerHTML=`<label class="ansPick">Show ride: <select id="ansSel">${list.map(o=>`<option value="${o.i}" ${o.i===ansSel?'selected':''}>${sessLabel(o.x)} · ${nice(o.x.d)} · ${o.x.first}/${o.x.n}</option>`).join('')}</select></label>
+  ${sameDay.length>1?`<p class="muted" style="font-size:15px;margin:8px 0 0">All tries of Day ${ss.day}: ${sameDay.map(r=>`${r.first}/${r.n}`).join(' → ')}</p>`:''}
+  <ol class="alist">${ss.qs.map(q=>{const r=res[q.res]||['',''];return `<li class="aitem ${q.res}">
+    <div class="ahead"><span class="tag">${SKILLS[q.skill]?SKILLS[q.skill].short:q.skill}</span><span class="ares">${r[0]} ${r[1]}</span></div>
+    <p class="aq">${esc(q.text)}</p>
+    <table class="atab"><tr><td>Correct answer</td><td><b>${esc(q.ans)}</b></td></tr>
+    ${(q.picks||[]).map((pk,j)=>`<tr><td>${j?'2nd try':'1st try'}</td><td class="${pk===q.ans?'ok':'no'}">${esc(pk)} ${pk===q.ans?'✓':'✗'}${pk!==q.ans&&(j?q.code2:q.code)&&(j?q.code2:q.code)!=='other'?` <span class="muted">(${MISTAKES[j?q.code2:q.code]})</span>`:''}</td></tr>`).join('')}
+    ${q.twin?`<tr><td>Twin question</td><td>${esc(q.twin.text)}<br>Correct <b>${esc(q.twin.ans)}</b>, she picked <span class="${q.twin.pick===q.twin.ans?'ok':'no'}">${esc(q.twin.pick||'–')} ${q.twin.pick===q.twin.ans?'✓':'✗'}</span></td></tr>`:''}
+    </table></li>`}).join('')}</ol>`;
+  document.getElementById('ansSel').onchange=e=>{ansSel=+e.target.value;renderAnswers()};
 }
 // ==GAMES START==
 const GAMES={
@@ -968,32 +1033,33 @@ const GAMES={
 };
 const GAME_ORDER=['catch','match','pop','dash'],PLAYS_PER_DAY=3;
 let gameStop=null;
-function gameFor(day){day=Math.max(1,day);return {id:GAME_ORDER[(day-1)%4],level:Math.min(4,Math.ceil(day/4)),day}}
+let gameDay=1;
+function gameFor(day){day=Math.max(1,day);return {id:GAME_ORDER[(day-1)%4],level:Math.min(4,Math.ceil(day/6)),day}}
 function gstate(){if(!state.games)state.games={plays:{},best:{}};return state.games}
-function playsLeft(){return PLAYS_PER_DAY-(gstate().plays[today()]||0)}
+function playsLeft(day){return PLAYS_PER_DAY-(gstate().plays['day'+day]||0)}
 
 function renderGame(){
-  const g=gameFor(dayInfo().done),G=GAMES[g.id];
+  const g=gameFor(gameDay),G=GAMES[g.id];
   app.innerHTML=`<div class="qbar"><button class="link" id="gback">Back to the map</button><span class="muted" id="plays"></span></div>
   <section class="gcard"><h1 class="display">${G.icon} ${G.name}</h1><p class="ghow">${G.how}</p><div class="ghud" id="hud" aria-live="off"></div><div id="stage"></div></section>`;
   document.getElementById('gback').onclick=()=>{view='home';render()};
   gameStartPanel(g);
 }
 function gameStartPanel(g){
-  const st=document.getElementById('stage'),left=playsLeft(),best=gstate().best[g.id]||0;
-  document.getElementById('plays').textContent=`Plays left today: ${left}`;document.getElementById('hud').textContent='';
+  const st=document.getElementById('stage'),left=playsLeft(g.day),best=gstate().best[g.id]||0;
+  document.getElementById('plays').textContent=`Plays left: ${left}`;document.getElementById('hud').textContent='';
   st.innerHTML=left>0?`<div class="gpanel"><p class="display" style="font-size:24px">Day ${g.day} reward, level ${g.level}</p>${best?`<p class="muted">Your best: ${best}</p>`:''}<button class="btn" id="gstart">Start the game</button></div>`
-    :`<div class="gpanel"><p class="display" style="font-size:24px">That's all ${PLAYS_PER_DAY} plays for today 🎉</p><p class="muted">Finish tomorrow's ride to unlock a new game.</p></div>`;
+    :`<div class="gpanel"><p class="display" style="font-size:24px">That's all ${PLAYS_PER_DAY} plays for Day ${g.day} 🎉</p><p class="muted">Finish the next Day to unlock a new game.</p></div>`;
   const b=document.getElementById('gstart');if(b){b.focus();b.onclick=()=>{
-    gstate().plays[today()]=(gstate().plays[today()]||0)+1;save();
-    document.getElementById('plays').textContent=`Plays left today: ${playsLeft()}`;
+    const k='day'+g.day;gstate().plays[k]=(gstate().plays[k]||0)+1;save();
+    document.getElementById('plays').textContent=`Plays left: ${playsLeft(g.day)}`;
     b.blur();st.innerHTML='';
     gameStop=GAME_FNS[g.id](st,g.level,document.getElementById('hud'),score=>{gameStop=null;gameEnd(g,score)});
   }}
 }
 function gameEnd(g,score){
   const gs=gstate(),best=gs.best[g.id]||0,nb=score>best;if(nb)gs.best[g.id]=score;save();
-  const st=document.getElementById('stage');if(!st)return;const left=playsLeft();
+  const st=document.getElementById('stage');if(!st)return;const left=playsLeft(g.day);
   st.innerHTML=`<div class="gpanel"><p class="muted">Your score</p><p class="big">${score}</p><p class="display" style="font-size:22px">${nb?'New best score! 🏆':`Best: ${best}`}</p>
   <div class="actions" style="justify-content:center">${left>0?`<button class="btn" id="gagain">Play again (${left} left)</button>`:''}<button class="btn soft" id="gmap">Back to the map</button></div></div>`;
   const a=document.getElementById('gagain');if(a)a.onclick=()=>gameStartPanel(g);
