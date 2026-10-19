@@ -236,6 +236,8 @@ th{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;color:var(--muted)
 .subh{font-size:18px;margin:18px 0 4px;color:var(--muted)}
 .give{display:grid;gap:8px;margin:8px 0}.grow{display:grid;grid-template-columns:100px 1fr 40px;align-items:center;gap:10px;font-size:24px}.grow b{font-size:17px}.grow .cnt{font-size:22px}
 rect.cell{cursor:pointer}
+.qbox{display:inline-grid;place-items:center;min-width:44px;height:44px;border:3px solid var(--ink);border-radius:6px;margin:0 4px}
+.balance{display:flex;align-items:center;gap:16px;font:600 26px "Fredoka",system-ui,sans-serif}.balance span{background:var(--blue-soft);border-radius:12px;padding:6px 14px}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -297,7 +299,13 @@ const SKILLS={
   ratio:{name:'Times as much: how much more?',short:'Model drawing',warm:false,isNew:true},
   sale:{name:'Sale price vs usual price',short:'Money',warm:false,isNew:true},
   rectArea:{name:'Area of rectangles',short:'Area',warm:false,isNew:true},
-  barGraph:{name:'Reading bar graphs',short:'Data',warm:false,isNew:true}
+  barGraph:{name:'Reading bar graphs',short:'Data',warm:false,isNew:true},
+  missingNum:{name:'Missing number: 3 × 8 = ? − 9',short:'Number',warm:true,isNew:true,batch:3},
+  divRem:{name:'Missing number: ? ÷ 6 = 857 R 1',short:'Division',warm:true,isNew:true,batch:3},
+  doubleBar:{name:'Bar graph with no numbers',short:'Data',warm:false,isNew:true,batch:3},
+  barMoney:{name:'Bar graph: small ticks and money',short:'Data',warm:false,isNew:true,batch:3},
+  fracRest:{name:'Fractions: "ate the rest"',short:'Fractions',warm:false,isNew:true,batch:3},
+  wire:{name:'Wire: rectangle and square',short:'Geometry',warm:false,isNew:true,batch:3}
 };
 const MISTAKES={
   noCarry:'Did not carry 60 minutes into 1 hour',
@@ -342,6 +350,13 @@ const MISTAKES={
   saleTotal:'Money: gave the full price, not "how much more"',salePrice:'Money: gave the sale price',perPacket:'Money: found the difference for one item only',addBoth:'Money: added instead of taking away',
   addSides:'Area: added the sides instead of multiplying',allRects:'Area: found the area of all the rectangles',perim:'Area: found the perimeter instead',
   missLast:'Graph: left out the last day',endsOnly:'Graph: added only the first and last day',allDays:'Graph: added all the days',
+  copyGiven:'Graph: copied the number given in the question',unitsOnly:'Graph: counted lines but did not multiply',oneUnit:'Graph: gave what 1 line is worth',
+  forgotPrice:'Graph money: forgot to multiply by the price',misread:'Graph: misread a bar (small ticks are 10)',missBar:'Graph: left out a bar',
+  leftOnly:'Missing number: gave only the side worked out',wrongOpp:'Missing number: used the wrong opposite operation',
+  forgotR:'Remainder: forgot to add the remainder back',minusR:'Remainder: took the remainder away',addOnly:'Remainder: added instead of multiplying',
+  restOnly:'"The rest": gave the rest, not "how much more"',sumOnly:'"The rest": gave the two others together',wrongPerson:'Fractions: gave the wrong person\'s share',notSimpleR:'Fractions: not in simplest form',
+  rectAreaW:'Wire: gave the rectangle\'s area',noHalf:'Wire: forgot the square is half the length',perimSq:'Wire: gave perimeter instead of area',
+  rectOnly:'Wire: counted only the rectangle',sidesOnly:'Wire: added only the sides shown',usedArea:'Wire: used area instead of perimeter',noHalfW:'Wire: square side not halved',
   other:'Other slip'
 };
 
@@ -631,7 +646,13 @@ const TIPS={
   ratio:'Draw units: jug and bottle together = (times + 1) units. "How much more" = the extra units only.',
   sale:'Find both prices first. "How much more" = bigger price − smaller price.',
   rectArea:'Area = length × breadth. Never add the sides.',
-  barGraph:'"From Monday to Wednesday" includes every day in between. Halfway between two lines is 50.'
+  barGraph:'"From Monday to Wednesday" includes every day in between. Halfway between two lines is 50.',
+  missingNum:'Work out the side you know first. Both sides are equal. Then do the opposite: − becomes +, + becomes −.',
+  divRem:'? ÷ 6 = 857 R 1 means ? = 857 × 6 + 1. Multiply, then add the remainder back.',
+  doubleBar:'No numbers on the graph? Use the clue to find what 1 line is worth. Then count lines and multiply.',
+  barMoney:'Find what each small tick is worth (often 10). Read every bar, add them up, then × the price.',
+  fracRest:'The whole is 1 = 12/12 (or 8/8, 10/10...). "The rest" = whole − the parts eaten. Make all the bottoms the same first.',
+  wire:'The square side is half the rectangle length. Wire = perimeter of rectangle + perimeter of square. Area = side × side.'
 };
 // ==== NEW TOPICS (from the second set of papers) ====
 function gcd(a,b){return b?gcd(b,a%b):a}
@@ -1128,10 +1149,212 @@ function genBarGraph(){
     ],
     solution:[`Days: ${rng.map(i=>days[i]).join(', ')}`,`${rng.map(i=>vals[i]).join(' + ')} = ${sum}`]};
 }
+// ==== BATCH 3 (papers of 19 Oct) ====
+// ---- double bar graph with no numbers on the scale ----
+function dblBarSVG(cats,boys,girls,showScale,u,hl){
+  const top=8,x0=40,y0=40+top*30,gw=150,W=x0+gw*cats.length+130;
+  let s=`<svg viewBox="0 0 ${W} ${y0+40}" width="100%" style="max-width:${W}px" role="img" aria-label="Double bar graph of favourite colours"><defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--ink)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--paper)" stroke-width="1.5"/></pattern></defs>`;
+  s+=`<text x="${x0+gw*cats.length/2}" y="24" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Favourite Colour</text>`;
+  for(let i=0;i<=top;i++){const y=y0-i*30;s+=`<line x1="${x0}" y1="${y}" x2="${x0+gw*cats.length}" y2="${y}" stroke="${i?'var(--muted)':'currentColor'}" stroke-width="${i?1:2}"/>`;if(showScale&&i)s+=`<text x="${x0-6}" y="${y+5}" text-anchor="end" font-size="12" fill="currentColor">${i*u}</text>`}
+  s+=`<line x1="${x0}" y1="${y0-top*30}" x2="${x0}" y2="${y0}" stroke="currentColor" stroke-width="2"/>`;
+  cats.forEach((c,i)=>{const bx=x0+i*gw+30,on=hl&&hl.includes(i);
+    s+=`<rect x="${bx}" y="${y0-boys[i]*30}" width="40" height="${boys[i]*30}" fill="url(#hatch)" stroke="currentColor" stroke-width="2"/>`;
+    s+=`<rect x="${bx+44}" y="${y0-girls[i]*30}" width="40" height="${girls[i]*30}" fill="var(--paper)" stroke="currentColor" stroke-width="2"/>`;
+    if(on){s+=`<rect x="${bx-6}" y="${y0-Math.max(boys[i],girls[i])*30-8}" width="96" height="${Math.max(boys[i],girls[i])*30+8}" fill="none" stroke="var(--sun)" stroke-width="3" stroke-dasharray="6 4"/>`}
+    s+=`<text x="${bx+42}" y="${y0+20}" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">${c}</text>`});
+  const lx=x0+gw*cats.length+16;
+  s+=`<rect x="${lx}" y="${y0-150}" width="16" height="16" fill="url(#hatch)" stroke="currentColor"/><text x="${lx+22}" y="${y0-137}" font-size="14" fill="currentColor">Boys</text><rect x="${lx}" y="${y0-120}" width="16" height="16" fill="var(--paper)" stroke="currentColor"/><text x="${lx+22}" y="${y0-107}" font-size="14" fill="currentColor">Girls</text>`;
+  return s+'</svg>';
+}
+function genDoubleBar(){
+  const cats=R.shuffle(['Red','Yellow','Green','Blue']).slice(0,3),u=R.pick([4,5,6,8,10,12,15]);
+  let boys,girls,i1,i2,k,m;
+  for(let g=0;g<300;g++){boys=cats.map(()=>R.int(1,7));girls=cats.map(()=>R.int(1,7));i1=R.int(0,2);do{i2=R.int(0,2)}while(i2===i1);
+    k=girls[i1]-boys[i1];m=boys[i2]-girls[i2];if(k>=2&&m>=1&&m!==k)break}
+  const D=k*u,mode=R.rand()<0.6?'diff':'total';
+  const ans=mode==='diff'?m*u:(boys[i2]+girls[i2])*u;
+  const qtxt=mode==='diff'?`How many more boys than girls chose ${cats[i2].toLowerCase()} as their favourite colour?`:`How many students chose ${cats[i2].toLowerCase()} altogether?`;
+  const units=mode==='diff'?m:boys[i2]+girls[i2];
+  const why={
+    copyGiven:`${D} is the difference for ${cats[i1].toLowerCase()}. The question asks about ${cats[i2].toLowerCase()}. Use the ${D} to find what 1 line is worth first.`,
+    unitsOnly:`${units} is the number of LINES. Each line is worth ${u} students, so multiply: ${units} × ${u}.`,
+    oneUnit:`${u} is what 1 line is worth. Now count how many lines the question needs.`,
+    other:`The graph has no numbers. Step 1: count the lines between the ${cats[i1].toLowerCase()} bars. ${D} ÷ that = 1 line.`
+  };
+  return {skill:'doubleBar',brief:`${cats.map((c,i)=>`${c} B${boys[i]} G${girls[i]}`).join(', ')} lines; 1 line = ${u}`,
+    walkVisual:dblBarSVG(cats,boys,girls,true,u,[i1,i2]),
+    text:`The bar graph shows the number of students who chose their favourite colour. <b>${D} more girls than boys</b> chose ${cats[i1].toLowerCase()}. ${qtxt}`,
+    figure:`<div class="figure">${dblBarSVG(cats,boys,girls,false,u,null)}</div>`,
+    options:makeOptions(String(ans),[{label:String(D),code:'copyGiven'},{label:String(units),code:'unitsOnly'},{label:String(u),code:'oneUnit'}],()=>String(ans+R.pick([-1,1,2])*u)),answer:String(ans),why,
+    remedy:[
+      {title:`Count the lines for ${cats[i1].toLowerCase()}`,text:'This graph has no numbers. We count the lines instead.',visual:dblBarSVG(cats,boys,girls,false,u,[i1]),
+        ask:makeAsk(`The girls' bar for ${cats[i1].toLowerCase()} is how many lines taller than the boys' bar?`,String(k),[String(k+1),String(girls[i1]),String(Math.max(1,k-1))],`Boys' bar: ${boys[i1]} lines. Girls' bar: ${girls[i1]} lines. ${girls[i1]} − ${boys[i1]}.`)},
+      {title:'What is 1 line worth?',ask:makeAsk(`${k} lines = ${D} students. 1 line = ?`,String(u),[String(D),String(D*k),String(u+2)],`${D} ÷ ${k}.`)},
+      {title:`Now look at ${cats[i2].toLowerCase()}`,visual:dblBarSVG(cats,boys,girls,false,u,[i2]),
+        ask:makeAsk(mode==='diff'?`The boys' bar for ${cats[i2].toLowerCase()} is how many lines taller than the girls' bar?`:`Boys' lines + girls' lines for ${cats[i2].toLowerCase()} = ?`,String(units),[String(units+1),String(boys[i2]),String(Math.max(1,units-1))].filter(x=>x!==String(units)),mode==='diff'?`${boys[i2]} − ${girls[i2]}.`:`${boys[i2]} + ${girls[i2]}.`)},
+      {title:'Change lines into students',visual:dblBarSVG(cats,boys,girls,true,u,[i2]),ask:makeAsk(`${units} lines × ${u} = ?`,String(ans),[String(units),String(D),String(ans+u)],`Each line is ${u} students.`)}
+    ],
+    solution:[`${cats[i1]}: girls − boys = ${girls[i1]} − ${boys[i1]} = ${k} lines = ${D}`,`1 line = ${D} ÷ ${k} = ${u}`,mode==='diff'?`${cats[i2]}: boys − girls = ${boys[i2]} − ${girls[i2]} = ${m} lines`:`${cats[i2]}: ${boys[i2]} + ${girls[i2]} = ${units} lines`,`${units} × ${u} = ${ans}`]};
+}
+
+// ---- bar graph with small ticks, then × price ----
+function tickBarSVG(vals,labels,title,hl,showVals){
+  const x0=60,y0=260,top=40,max=200,sc=(y0-top)/max,gap=110,bw=50,W=x0+gap*vals.length+20;
+  let s=`<svg viewBox="0 0 ${W} 300" width="100%" style="max-width:${W}px" role="img" aria-label="Bar graph: ${title}"><text x="${x0+gap*vals.length/2}" y="20" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${title}</text>`;
+  for(let v=0;v<=max;v+=10){const y=y0-v*sc;s+=v%50===0?`<line x1="${x0-10}" y1="${y}" x2="${x0}" y2="${y}" stroke="currentColor" stroke-width="2"/><text x="${x0-14}" y="${y+5}" text-anchor="end" font-size="13" fill="currentColor">${v}</text>`:`<line x1="${x0-5}" y1="${y}" x2="${x0}" y2="${y}" stroke="currentColor"/>`}
+  s+=`<line x1="${x0}" y1="${top-6}" x2="${x0}" y2="${y0}" stroke="currentColor" stroke-width="2"/><line x1="${x0}" y1="${y0}" x2="${W-10}" y2="${y0}" stroke="currentColor" stroke-width="2"/>`;
+  vals.forEach((v,i)=>{const x=x0+30+i*gap,h=v*sc,on=hl&&hl.includes(i);
+    s+=`<line x1="${x0}" y1="${y0-h}" x2="${x}" y2="${y0-h}" stroke="var(--muted)" stroke-dasharray="4 4"/><rect x="${x}" y="${y0-h}" width="${bw}" height="${h}" fill="${on?'var(--sun)':'var(--ink)'}" stroke="currentColor"/><text x="${x+bw/2}" y="${y0+18}" text-anchor="middle" font-size="13" fill="currentColor">${labels[i]}</text>${showVals?`<text x="${x+bw/2}" y="${y0-h-6}" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">${v}</text>`:''}`});
+  return s+'</svg>';
+}
+function genBarMoney(){
+  const th=R.pick([['ice-cream cones','sold at a funfair',['Chocolate','Mango','Strawberry','Vanilla'],'ice-cream cone'],['cups of drinks','sold at a stall',['Milo','Tea','Coffee','Juice'],'cup'],['packets of cookies','sold at a bake sale',['Butter','Choc chip','Oat','Almond'],'packet']]);
+  let vals;do{vals=th[2].map(()=>R.int(4,19)*10)}while(vals.filter(v=>v%50).length<3);
+  const p=R.pick([2,2,3,5]),sum=vals.reduce((a,b)=>a+b,0),ans=sum*p;
+  const tricky=vals.findIndex(v=>v%50===20||v%50===30)>=0?vals.findIndex(v=>v%50===20||v%50===30):vals.findIndex(v=>v%50);
+  const title=`Number of ${th[0]} ${th[1].split(' ')[0]}`;
+  const why={
+    forgotPrice:`${sum} is the number of ${th[0]}. Each one was sold for $${p}, so multiply by ${p} to get the money.`,
+    misread:`Check the ${th[2][tricky]} bar again. Each small tick is 10. Count the ticks up from the nearest big number.`,
+    missBar:`Add ALL ${vals.length} bars before multiplying.`,
+    other:`Read each bar, add them up, then multiply by $${p}.`
+  };
+  const mis=vals.slice();mis[tricky]+=10;
+  return {skill:'barMoney',brief:th[2].map((l,i)=>`${l} ${vals[i]}`).join(', ')+`; $${p} each`,walkVisual:tickBarSVG(vals,th[2],title,null,true),
+    text:`The bar graph shows the number of ${th[0]} ${th[1]}. Each ${th[3]} was sold for <b>$${p}</b>. What was the total amount of money received from the sale of the ${th[0]}?`,
+    figure:`<div class="figure">${tickBarSVG(vals,th[2],title,null,false)}</div>`,
+    options:makeOptions(`$${ans}`,[{label:`$${sum}`,code:'forgotPrice'},{label:`$${(sum+10)*p}`,code:'misread'},{label:`$${(sum-vals[3])*p}`,code:'missBar'}],()=>`$${ans+R.pick([-2,-1,1,2])*10*p}`),answer:`$${ans}`,why,
+    remedy:[
+      {title:'Read the scale',text:'The big numbers go up in 50s. There are 5 small steps between 0 and 50, so each small tick is 10.',visual:tickBarSVG(vals,th[2],title,[tricky],false),
+        ask:makeAsk(`How many ${th[3]}s for ${th[2][tricky]}?`,String(vals[tricky]),[String(vals[tricky]+10),String(vals[tricky]-10),String(vals[tricky]+5)],`Start at the big number just below the bar top, then count the small ticks: 10 each.`)},
+      {title:'Add all the bars',visual:tickBarSVG(vals,th[2],title,null,true),ask:makeAsk(`${vals.join(' + ')} = ?`,String(sum),[String(sum+10),String(sum-vals[3]),String(sum+100)],'Add them two at a time.')},
+      {title:'Change into money',ask:makeAsk(`${sum} × $${p} = ?`,`$${ans}`,[`$${sum}`,`$${sum+p}`,`$${(sum+10)*p}`],`Each one is $${p}: ${sum} × ${p}.`)}
+    ],
+    solution:[`${th[2].map((l,i)=>`${l} ${vals[i]}`).join(', ')}`,`Total: ${vals.join(' + ')} = ${sum}`,`${sum} × $${p} = $${ans}`]};
+}
+
+// ---- missing number: 3 × 8 = ? − 9 ----
+function genMissingNum(){
+  const a=R.int(2,9),b=R.int(3,9),c=R.int(4,19),ab=a*b,form=R.pick(['minus','minus','plus','minusL']);
+  let eq,ans,opp,wrongOpp;
+  if(form==='minus'){eq=`${a} × ${b} = <span class="qbox">?</span> − ${c}`;ans=ab+c;opp=`${ab} + ${c}`;wrongOpp=ab-c}
+  else if(form==='plus'){eq=`${a} × ${b} = <span class="qbox">?</span> + ${c}`;ans=ab-c;opp=`${ab} − ${c}`;wrongOpp=ab+c}
+  else{eq=`<span class="qbox">?</span> − ${c} = ${a} × ${b}`;ans=ab+c;opp=`${ab} + ${c}`;wrongOpp=ab-c}
+  if(ans<=0)return genMissingNum();
+  const sign=form==='plus'?'+':'−';
+  const why={
+    leftOnly:`${ab} is only ${a} × ${b}. Both sides must be EQUAL: ? ${sign} ${c} must also make ${ab}.`,
+    wrongOpp:`Check: ${wrongOpp} ${sign} ${c} = ${form==='plus'?wrongOpp+c:wrongOpp-c}, not ${ab}. Do the OPPOSITE: ${form==='plus'?'take away':'add'} ${c}.`,
+    other:`Work out ${a} × ${b} first. Then ask: what number ${sign} ${c} gives that?`
+  };
+  return {skill:'missingNum',brief:`${a} × ${b} = ? ${sign} ${c}`,
+    text:`What is the missing number?`,figure:`<div class="figure fr">${eq}</div>`,
+    options:makeOptions(String(ans),[{label:String(ab),code:'leftOnly'},{label:wrongOpp>0?String(wrongOpp):null,code:'wrongOpp'},{label:String(c),code:'other'}],()=>String(ans+R.pick([-2,-1,1,2,10]))),answer:String(ans),why,
+    walkVisual:`<div class="figure balance"><span>${a} × ${b}</span><b>=</b><span>? ${sign} ${c}</span></div><p class="muted" style="font-size:15px">Both sides weigh the same: ${ab} = ${ans} ${sign} ${c}</p>`,
+    remedy:[
+      {title:'Work out the side you know',ask:makeAsk(`${a} × ${b} = ?`,String(ab),[String(ab+a),String(a+b),String(ab-b)],`${a} groups of ${b}.`)},
+      {title:'Both sides are equal',visual:`<div class="figure balance"><span>${ab}</span><b>=</b><span>? ${sign} ${c}</span></div>`,ask:makeAsk(`? ${sign} ${c} must make ${ab}. To find ?, we…`,form==='plus'?`take away ${c}`:`add ${c}`,[form==='plus'?`add ${c}`:`take away ${c}`,`multiply by ${c}`],`Do the opposite of ${sign} ${c}.`)},
+      {title:'Find the missing number',ask:makeAsk(`${opp} = ?`,String(ans),[String(ab),String(wrongOpp>0?wrongOpp:ans+2),String(ans+1)],`Check: ${ans} ${sign} ${c} = ${ab} ✓`)}
+    ],
+    solution:[`${a} × ${b} = ${ab}`,`? ${sign} ${c} = ${ab}`,`? = ${opp} = ${ans}`,`Check: ${ans} ${sign} ${c} = ${ab} ✓`]};
+}
+
+// ---- ? ÷ 6 = 857 R 1 ----
+function genDivRem(){
+  const d=R.int(3,9),q=R.int(105,999),r=R.int(1,d-1),N=q*d+r;
+  const why={
+    forgotR:`${q} × ${d} = ${q*d}, but there was ${r} LEFT OVER. Add it back: ${q*d} + ${r}.`,
+    minusR:`The remainder is EXTRA, so we add it, not take it away.`,
+    addOnly:`Division turns back into MULTIPLICATION: ${q} × ${d}, then add the remainder.`,
+    other:`? = ${q} × ${d} + ${r}. Check with long division.`
+  };
+  return {skill:'divRem',brief:`? ÷ ${d} = ${q} R ${r}`,text:'What is the missing number?',figure:`<div class="figure fr"><span class="qbox">?</span> ÷ ${d} = ${q} R ${r}</div>`,
+    walkVisual:`<div class="figure"><p class="readout">${d} groups of ${q}, plus ${r} left over</p><p class="readout"><b>? = ${q} × ${d} + ${r} = ${N}</b></p></div>`,
+    options:makeOptions(String(N),[{label:String(q*d),code:'forgotR'},{label:String(q*d-r),code:'minusR'},{label:String(q+d+r),code:'addOnly'}],()=>String(N+R.pick([-10,10,d,-d,1]))),answer:String(N),why,
+    remedy:[
+      {title:'Turn it around',text:`"? ÷ ${d} = ${q} R ${r}" means: ? was shared into ${d} groups of ${q}, and ${r} was left over.`,ask:makeAsk('So to find ?, we…',`multiply ${q} × ${d}, then add ${r}`,[`divide ${q} by ${d}`,`multiply ${q} × ${d} only`,`add ${q} + ${d}`],'Undo the division with multiplication, and put back the leftover.')},
+      {title:'Multiply',ask:makeAsk(`${q} × ${d} = ?`,String(q*d),[String(q*d+d),String(q*d-10),String(q*d+100)],`Multiply ones, tens, then hundreds. Remember to carry.`)},
+      {title:'Add the remainder',ask:makeAsk(`${q*d} + ${r} = ?`,String(N),[String(q*d),String(q*d-r),String(N+1)],`Don't forget the ${r} left over!`)}
+    ],
+    solution:[`? = ${q} × ${d} + ${r}`,`${q} × ${d} = ${q*d}`,`${q*d} + ${r} = ${N}`]};
+}
+
+// ---- "Clarice ate the rest" fractions ----
+function fbar3(a,b2,B){
+  const W=300;let s=`<svg viewBox="0 0 320 54" width="320" role="img" aria-label="Fraction bar in ${B} parts">`;
+  for(let i=0;i<B;i++){const f=i<a?'var(--pink)':i<a+b2?'var(--blue)':'var(--sun-soft)';s+=`<rect x="${10+i*W/B}" y="8" width="${W/B}" height="34" fill="${f}" stroke="currentColor" stroke-width="2"/>`}
+  return s+'</svg>';
+}
+function genFracRest(){
+  let B,s,k,a,c,ck,rest,g;
+  for(let t=0;t<400;t++){B=R.pick([8,9,10,12]);const dv=[2,3,4,5,6].filter(x=>x<B&&B%x===0);s=R.pick(dv);k=B/s;a=R.int(1,B-3);c=R.int(1,s-1);if(gcd(a,B)!==1||gcd(c,s)!==1)continue;ck=c*k;rest=B-a-ck;if(rest<1)continue;if(rest-ck<1)continue;break}
+  const pk=R.shuffle(KIDS),A=pk[0][0],Bn=pk[1][0],C=pk[2][0],mode=R.rand()<0.6?'more':'rest';
+  const simp=(n)=>{const gg=gcd(n,B);return `${n/gg}/${B/gg}`};
+  const ans=mode==='more'?simp(rest-ck):simp(rest);
+  const why={
+    restOnly:`That is how much ${C} ate. The question asks how much MORE ${C} ate than ${Bn}: take away ${Bn}'s part too.`,
+    sumOnly:`That is what ${A} and ${Bn} ate together. ${C} ate the REST: 1 whole − that.`,
+    wrongPerson:`That is ${A}'s part. Read again who the question is about.`,
+    notSimpleR:`Your fraction is right but not in simplest form.`,
+    other:`Change everything into ${B}ths. The whole bar is ${B}/${B}.`
+  };
+  const qtxt=mode==='more'?`How much more of the chocolate bar was eaten by ${C} than ${Bn}? Give your answer in its simplest form.`:`What fraction of the chocolate bar did ${C} eat? Give your answer in its simplest form.`;
+  const raw=mode==='more'?rest-ck:rest;
+  return {skill:'fracRest',brief:`${A} ${a}/${B}, ${Bn} ${c}/${s}, ${C} the rest`,walkVisual:`<div class="figure">${fbar3(a,ck,B)}<p class="muted" style="font-size:15px;margin:4px 0">Pink: ${A} ${a}/${B}. Blue: ${Bn} ${ck}/${B}. Yellow: ${C} ${rest}/${B}.</p></div>`,
+    text:`${A}, ${Bn} and ${C} shared a chocolate bar. ${A} ate ${frac(a,B)} of the chocolate bar while ${Bn} ate ${frac(c,s)} of the chocolate bar. ${C} ate <b>the rest</b> of the chocolate bar. ${qtxt}`,
+    options:makeOptions(ans,[{label:mode==='more'?simp(rest):null,code:'restOnly'},{label:simp(a+ck),code:'sumOnly'},{label:mode==='more'?simp(a):simp(a),code:'wrongPerson'},{label:gcd(raw,B)>1?`${raw}/${B}`:null,code:'notSimpleR'}],()=>simp(R.int(1,B-1))),answer:ans,why,
+    remedy:[
+      {title:'Same size pieces',visual:`<div class="figure">${fbarSVG(c,s)}<br>${fbarSVG(ck,B)}</div>`,ask:makeAsk(`${Bn} ate ${c}/${s}. ${c}/${s} = ?/${B}`,String(ck),[String(c),String(ck+1),String(k)],`${s} × ${k} = ${B}, so ${c} × ${k}.`)},
+      {title:`${A} and ${Bn} together`,visual:`<div class="figure">${fbar3(a,ck,B)}</div>`,ask:makeAsk(`${a}/${B} + ${ck}/${B} = ?`,`${a+ck}/${B}`,[`${a+c}/${B+s}`,`${a+c}/${B}`,`${a+ck}/${2*B}`],`Add the tops, keep ${B}.`)},
+      {title:`${C} ate the rest`,text:`The whole bar is ${B}/${B}. The yellow part is what is left.`,ask:makeAsk(`${B}/${B} − ${a+ck}/${B} = ?`,`${rest}/${B}`,[`${a+ck}/${B}`,`${rest+1}/${B}`,`1/${B}`],`Count the yellow pieces.`)},
+      ...(mode==='more'?[{title:`Compare ${C} and ${Bn}`,ask:makeAsk(`${rest}/${B} − ${ck}/${B} = ?`,`${rest-ck}/${B}`,[`${rest}/${B}`,`${rest+ck}/${B}`,`${ck}/${B}`],`Yellow pieces take away blue pieces.`)}]:[]),
+      {title:'Simplest form',ask:makeAsk(`${raw}/${B} in simplest form = ?`,ans,[`${raw}/${B}`===ans?`${raw*2}/${B*2}`:`${raw}/${B}`,simp(a+ck),simp(raw+1)],gcd(raw,B)>1?`Divide top and bottom by ${gcd(raw,B)}.`:`${raw} and ${B} cannot both be divided by the same number, so it is already simplest.`)}
+    ],
+    solution:[`${c}/${s} = ${ck}/${B}`,`${A} + ${Bn} = ${a}/${B} + ${ck}/${B} = ${a+ck}/${B}`,`${C} = ${B}/${B} − ${a+ck}/${B} = ${rest}/${B}`,...(mode==='more'?[`${C} − ${Bn} = ${rest}/${B} − ${ck}/${B} = ${rest-ck}/${B}`]:[]),`Simplest form: ${ans}`]};
+}
+
+// ---- wire: rectangle + square ----
+function wireFig(L,W,sd,showSq){
+  const sc=Math.min(9,240/Math.max(L,W+sd)),rw=L*sc,rh=W*sc,ss=sd*sc,x0=70,y0=20+ss;
+  let s=`<svg viewBox="0 0 ${x0+rw+ss+40} ${y0+rh+40}" width="100%" style="max-width:${x0+rw+ss+60}px" role="img" aria-label="A rectangle and a square made from wire">`;
+  s+=`<rect x="${x0}" y="${y0}" width="${rw}" height="${rh}" fill="var(--blue-soft)" stroke="currentColor" stroke-width="2.5"/><rect x="${x0+rw}" y="${y0-ss}" width="${ss}" height="${ss}" fill="var(--pink-soft)" stroke="currentColor" stroke-width="2.5"/>`;
+  s+=`<text x="${x0-8}" y="${y0+rh/2+5}" text-anchor="end" font-size="14" font-weight="700" fill="currentColor">${W} cm</text><text x="${x0+rw/2}" y="${y0+rh+22}" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">${L} cm</text>`;
+  s+=`<text x="${x0+rw+ss/2}" y="${y0-ss/2+5}" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">${showSq?sd+' cm':'square'}</text>`;
+  return s+'</svg>';
+}
+function genWire(){
+  let L,W;do{L=R.int(6,15)*2;W=R.int(5,L-2)}while(W===L/2);
+  const sd=L/2,area=sd*sd,wire=2*(L+W)+4*sd,mode=R.rand()<0.5?'area':'wire',[nm,P]=R.pick(KIDS);
+  const base=`${nm} used a piece of wire to form a rectangle and a square. The length of the rectangle was <b>twice</b> the length of the square. `;
+  if(mode==='area'){
+    const why={rectAreaW:`${L} × ${W} is the area of the RECTANGLE. We want the square.`,noHalf:`The rectangle's length is TWICE the square's side. So the square's side is ${L} ÷ 2 = ${sd} cm.`,perimSq:`That is the perimeter of the square. Area = side × side.`,other:`Find the square's side first: ${L} ÷ 2.`};
+    return {skill:'wire',brief:`rectangle ${L} cm × ${W} cm, find area of square`,walkVisual:wireFig(L,W,sd,true),
+      text:base+'Find the <b>area of the square</b>.',figure:`<div class="figure">${wireFig(L,W,sd,false)}</div>`,
+      options:makeOptions(`${area} cm²`,[{label:`${L*W} cm²`,code:'rectAreaW'},{label:`${L*L} cm²`,code:'noHalf'},{label:`${4*sd} cm²`,code:'perimSq'}],()=>`${area+R.pick([-2,2,-1,1])*sd} cm²`),answer:`${area} cm²`,why,
+      remedy:[
+        {title:"Find the square's side",text:`"The length of the rectangle was twice the length of the square" means the square is HALF as long.`,visual:wireFig(L,W,sd,false),ask:makeAsk(`${L} ÷ 2 = ? cm`,`${sd} cm`,[`${L} cm`,`${W} cm`,`${L*2} cm`],`Half of ${L}.`)},
+        {title:'Area of the square',ask:makeAsk(`${sd} × ${sd} = ?`,`${area} cm²`,[`${4*sd} cm²`,`${sd*2} cm²`,`${L*W} cm²`],`Area = side × side.`)}
+      ],
+      solution:[`Square side = ${L} ÷ 2 = ${sd} cm`,`Area = ${sd} × ${sd} = ${area} cm²`]};
+  }
+  const pr=2*(L+W),ps=4*sd;
+  const why={rectOnly:`${pr} cm is only the rectangle. The wire also made the square: add its perimeter too.`,sidesOnly:`The wire goes ALL the way around both shapes, not just the sides shown.`,usedArea:`That uses area (× sides). Wire length is a PERIMETER: add all the sides.`,noHalfW:`The square's side is HALF the rectangle's length: ${L} ÷ 2 = ${sd} cm.`,other:`Wire = perimeter of rectangle + perimeter of square.`};
+  return {skill:'wire',brief:`rectangle ${L} cm × ${W} cm, find wire length`,walkVisual:wireFig(L,W,sd,true),
+    text:base+'Find the <b>length of the piece of wire</b> she used.'.replace('she',P.toLowerCase()),figure:`<div class="figure">${wireFig(L,W,sd,false)}</div>`,
+    options:makeOptions(`${wire} cm`,[{label:`${pr} cm`,code:'rectOnly'},{label:`${L+W+sd} cm`,code:'sidesOnly'},{label:`${pr+4*L} cm`,code:'noHalfW'},{label:`${L*W+sd*sd} cm`,code:'usedArea'}],()=>`${wire+R.pick([-4,4,-2,2])} cm`),answer:`${wire} cm`,why,
+    remedy:[
+      {title:"Find the square's side",visual:wireFig(L,W,sd,false),ask:makeAsk(`The rectangle's length (${L} cm) is twice the square's side. Square side = ?`,`${sd} cm`,[`${L} cm`,`${W} cm`,`${L*2} cm`],`${L} ÷ 2.`)},
+      {title:'Perimeter of the rectangle',ask:makeAsk(`${L} + ${W} + ${L} + ${W} = ?`,`${pr} cm`,[`${L+W} cm`,`${L*W} cm`,`${pr+2} cm`],`Go all the way around: 2 lengths and 2 breadths.`)},
+      {title:'Perimeter of the square',ask:makeAsk(`4 × ${sd} = ?`,`${ps} cm`,[`${sd*sd} cm`,`${sd} cm`,`${4*L} cm`],'A square has 4 equal sides.')},
+      {title:'Total wire',ask:makeAsk(`${pr} + ${ps} = ?`,`${wire} cm`,[`${pr} cm`,`${wire+sd} cm`,`${pr*2} cm`],'The wire made BOTH shapes.')}
+    ],
+    solution:[`Square side = ${L} ÷ 2 = ${sd} cm`,`Rectangle perimeter = 2 × (${L} + ${W}) = ${pr} cm`,`Square perimeter = 4 × ${sd} = ${ps} cm`,`Wire = ${pr} + ${ps} = ${wire} cm`]};
+}
 
 const GEN={timeEnd:genTimeEnd,minutes:genMinutes,fraction:genFraction,money:genMoney,beforeAfter:genBeforeAfter,sets:genSets,squares:genSquares,
   longDiv:genLongDiv,place:genPlace,fracHalf:genFracHalf,fracAdd:genFracAdd,shadeMore:genShadeMore,areaHalves:genAreaHalves,
-  transfer:genTransfer,watch:genWatch,groups:genGroups,remaining:genRemaining,trees:genTrees,boxes:genBoxes,ratio:genRatio,sale:genSale,rectArea:genRectArea,barGraph:genBarGraph};
+  transfer:genTransfer,watch:genWatch,groups:genGroups,remaining:genRemaining,trees:genTrees,boxes:genBoxes,ratio:genRatio,sale:genSale,rectArea:genRectArea,barGraph:genBarGraph,
+  missingNum:genMissingNum,divRem:genDivRem,doubleBar:genDoubleBar,barMoney:genBarMoney,fracRest:genFracRest,wire:genWire};
 // ==GEN END==
 
 // ---------- storage ----------
@@ -1180,7 +1403,7 @@ function needsReview(k){const cut=new Date();cut.setDate(cut.getDate()-3);const 
 function weightedPick(keys,count){
   const pool=keys.slice(),out=[];
   while(out.length<count&&pool.length){
-    const w=pool.map(k=>{const st=skillStats(k);return 1+(3-st.stars)*1.5+(needsReview(k)?4:0)+(SKILLS[k].isNew&&st.n<3?5:0)});
+    const w=pool.map(k=>{const st=skillStats(k);return 1+(3-st.stars)*1.5+(needsReview(k)?4:0)+(SKILLS[k].isNew&&st.n<3?5:0)+(SKILLS[k].batch===3&&st.n<3?6:0)});
     let r=Math.random()*w.reduce((a,b)=>a+b,0),i=0;for(;i<pool.length;i++){r-=w[i];if(r<=0)break}
     out.push(pool.splice(Math.min(i,pool.length-1),1)[0]);
   }return out;
