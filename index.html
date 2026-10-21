@@ -238,6 +238,7 @@ th{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;color:var(--muted)
 rect.cell{cursor:pointer}
 .qbox{display:inline-grid;place-items:center;min-width:44px;height:44px;border:3px solid var(--ink);border-radius:6px;margin:0 4px}
 .balance{display:flex;align-items:center;gap:16px;font:600 26px "Fredoka",system-ui,sans-serif}.balance span{background:var(--blue-soft);border-radius:12px;padding:6px 14px}
+.notes{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.note{border:2px solid var(--line);background:var(--line-soft);border-radius:6px;padding:2px 6px;font-size:14px;font-weight:700}.note.big{border-color:var(--blue);background:var(--blue-soft)}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -305,7 +306,9 @@ const SKILLS={
   doubleBar:{name:'Bar graph with no numbers',short:'Data',warm:false,isNew:true,batch:3},
   barMoney:{name:'Bar graph: small ticks and money',short:'Data',warm:false,isNew:true,batch:3},
   fracRest:{name:'Fractions: "ate the rest"',short:'Fractions',warm:false,isNew:true,batch:3},
-  wire:{name:'Wire: rectangle and square',short:'Geometry',warm:false,isNew:true,batch:3}
+  wire:{name:'Wire: rectangle and square',short:'Geometry',warm:false,isNew:true,batch:3},
+  fracOrder:{name:'Arrange fractions in order',short:'Fractions',warm:true,isNew:true,batch:4},
+  notes:{name:'$2 and $5 notes: how many?',short:'Money',warm:false,isNew:true,batch:4}
 };
 const MISTAKES={
   noCarry:'Did not carry 60 minutes into 1 hour',
@@ -357,6 +360,8 @@ const MISTAKES={
   restOnly:'"The rest": gave the rest, not "how much more"',sumOnly:'"The rest": gave the two others together',wrongPerson:'Fractions: gave the wrong person\'s share',notSimpleR:'Fractions: not in simplest form',
   rectAreaW:'Wire: gave the rectangle\'s area',noHalf:'Wire: forgot the square is half the length',perimSq:'Wire: gave perimeter instead of area',
   rectOnly:'Wire: counted only the rectangle',sidesOnly:'Wire: added only the sides shown',usedArea:'Wire: used area instead of perimeter',noHalfW:'Wire: square side not halved',
+  stopShort:'Notes: stopped at the dollars short, did not divide',otherNote:'Notes: gave the other kind of note',allBig:'Notes: divided the total by one note value',divWrong:'Notes: divided by the note value, not the difference',
+  byBottom:'Fractions: ordered by the bottom numbers',byTop:'Fractions: compared tops with different bottoms',reversed:'Fractions: put the order the wrong way round',
   other:'Other slip'
 };
 
@@ -652,7 +657,9 @@ const TIPS={
   doubleBar:'No numbers on the graph? Use the clue to find what 1 line is worth. Then count lines and multiply.',
   barMoney:'Find what each small tick is worth (often 10). Read every bar, add them up, then × the price.',
   fracRest:'The whole is 1 = 12/12 (or 8/8, 10/10...). "The rest" = whole − the parts eaten. Make all the bottoms the same first.',
-  wire:'The square side is half the rectangle length. Wire = perimeter of rectangle + perimeter of square. Area = side × side.'
+  wire:'The square side is half the rectangle length. Wire = perimeter of rectangle + perimeter of square. Area = side × side.',
+  fracOrder:'Find the one less than ½ first. Then make the other bottoms the same and compare the tops.',
+  notes:'Pretend all notes are the smaller note. Find how much short. Each swap adds the difference between the notes. Short ÷ difference = number of bigger notes.'
 };
 // ==== NEW TOPICS (from the second set of papers) ====
 function gcd(a,b){return b?gcd(b,a%b):a}
@@ -1350,11 +1357,75 @@ function genWire(){
     ],
     solution:[`Square side = ${L} ÷ 2 = ${sd} cm`,`Rectangle perimeter = 2 × (${L} + ${W}) = ${pr} cm`,`Square perimeter = 4 × ${sd} = ${ps} cm`,`Wire = ${pr} + ${ps} = ${wire} cm`]};
 }
+// ==== BATCH 4 (papers of 21 Oct) ====
+// ---- notes: 21 notes of $2 and $5 make $60 ----
+function genNotes(){
+  const pr=R.pick([[2,5],[2,5],[2,10],[5,10]]),[a,b]=pr;let N,x;
+  do{N=R.int(12,30);x=R.int(3,N-3)}while(a*(N-x)+b*x>200);
+  const T=a*(N-x)+b*x,allA=a*N,short=T-allA,step=b-a,askBig=R.rand()<0.7,ans=askBig?x:N-x;
+  const [nm]=R.pick(ADULTS);
+  const why={
+    stopShort:`${short} is how many DOLLARS short we are if all ${N} notes were $${a}. Each time we change a $${a} note into a $${b} note, the total goes up by $${step}. So ${short} ÷ ${step}.`,
+    otherNote:`That is the number of $${askBig?a:b} notes. The question asks for the $${askBig?b:a} notes.`,
+    allBig:`We can't just divide $${T} by ${b}: there are ${N} notes and some are $${a} notes.`,
+    divWrong:`Divide by the DIFFERENCE between the notes ($${b} − $${a} = $${step}), not by $${b}.`,
+    other:`Pretend all ${N} notes are $${a} notes first. How much short is that?`
+  };
+  return {skill:'notes',brief:`${N} notes of $${a} and $${b}, total $${T}`,
+    walkVisual:`<div class="figure"><table class="atab"><tr><td>All ${N} notes are $${a}</td><td><b>$${allA}</b></td></tr><tr><td>Short by</td><td>$${T} − $${allA} = <b>$${short}</b></td></tr><tr><td>1 swap ($${a} → $${b}) adds</td><td><b>$${step}</b></td></tr><tr><td>Swaps needed</td><td>${short} ÷ ${step} = <b>${x}</b> $${b} notes</td></tr></table></div>`,
+    text:`${nm} has <b>${N} notes</b>. Some are $${a} notes and the rest are $${b} notes. The total amount is <b>$${T}</b>. How many <b>$${askBig?b:a} notes</b> are there?`,
+    options:makeOptions(String(ans),[{label:String(short),code:'stopShort'},{label:String(askBig?N-x:x),code:'otherNote'},{label:Number.isInteger(T/b)?String(T/b):null,code:'allBig'},{label:Number.isInteger(short/b)&&short/b!==ans?String(short/b):null,code:'divWrong'}],()=>String(Math.max(1,ans+R.pick([-2,-1,1,2,3])))),answer:String(ans),why,
+    remedy:[
+      {title:`Pretend all are $${a} notes`,ask:makeAsk(`If all ${N} notes were $${a} notes, the total would be…`,`$${allA}`,[`$${T}`,`$${N*b}`,`$${allA+a}`],`${N} × $${a}.`)},
+      {title:'How much short?',ask:makeAsk(`We need $${T}. $${T} − $${allA} = ?`,`$${short}`,[`$${allA}`,`$${short+step}`,`$${T}`],`Take away.`)},
+      {title:'Try swapping notes',text:`Click to change a $${a} note into a $${b} note. Watch the total go up by $${step} each time. Stop when it reaches $${T}.`,widget:{type:'swapNotes',N,a,b,T}},
+      {title:'Work it out',ask:makeAsk(`Each swap adds $${step}. ${short} ÷ ${step} = ? swaps`,String(x),[String(short),String(N-x),String(x+1)],`So there are ${x} $${b} notes.`)},
+      ...(askBig?[]:[{title:`Now the $${a} notes`,ask:makeAsk(`${N} notes − ${x} $${b} notes = ? $${a} notes`,String(N-x),[String(x),String(N),String(short)],`${N} − ${x}.`)}])
+    ],
+    solution:[`All $${a}: ${N} × $${a} = $${allA}`,`Short: $${T} − $${allA} = $${short}`,`Each $${a} → $${b} swap adds $${b} − $${a} = $${step}`,`$${b} notes: ${short} ÷ ${step} = ${x}`,...(askBig?[]:[`$${a} notes: ${N} − ${x} = ${N-x}`]),`Check: ${N-x} × $${a} + ${x} × $${b} = $${T} ✓`]};
+}
+
+// ---- arrange fractions with different denominators ----
+function genFracOrder(){
+  let D,f1,f2,f3;
+  for(let g=0;g<400;g++){
+    D=R.pick([8,10,12]);const s=R.pick([2,3,4,5,6].filter(v=>v<D&&D%v===0));
+    const p=R.int(Math.floor(D/2)+1,D-1),q=R.int(Math.floor(s/2)+1,s-1);if(gcd(p,D)!==1||gcd(q,s)!==1)continue;
+    if(p===q*(D/s))continue;f1=[p,D];f2=[q,s];
+    const lows=[[2,5],[3,7],[4,9],[2,7],[3,8],[1,3],[2,9],[4,11],[5,11]].filter(([x,y])=>y!==D&&y!==s&&D%y!==0);f3=R.pick(lows);
+    break}
+  const fs=f=>`${f[0]}/${f[1]}`,val=f=>f[0]/f[1];
+  const all=[f1,f2,f3],sorted=all.slice().sort((x,y)=>val(x)-val(y));const desc=R.rand()<0.25,order=desc?sorted.slice().reverse():sorted;
+  const shown=R.shuffle(all),lab=arr=>arr.map(fs).join(', ');
+  const byBottom=all.slice().sort((x,y)=>x[1]-y[1]),byTop=all.slice().sort((x,y)=>x[0]-y[0]||x[1]-y[1]);
+  const perms=[[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]].map(pp=>lab(pp.map(i=>all[i])));
+  const ans=lab(order),k=D/f2[1],big=val(f1)>val(f2)?f1:f2,mid=big===f1?f2:f1;
+  const why={
+    byBottom:`A bigger bottom number does NOT mean a bigger fraction. The bottom tells how many pieces the whole is cut into.`,
+    byTop:`We can't compare the top numbers when the bottom numbers are different. Make the bottoms the same first.`,
+    reversed:`Check the direction! The question asks from the ${desc?'greatest to the smallest':'smallest to the greatest'}.`,
+    other:`Compare each fraction with 1/2 first. Then change the others into ${D}ths to compare them.`
+  };
+  const dsList=[{label:lab(desc?byBottom.slice().reverse():byBottom),code:'byBottom'},{label:lab(desc?byTop.slice().reverse():byTop),code:'byTop'},{label:lab(desc?sorted:sorted.slice().reverse()),code:'reversed'}];
+  return {skill:'fracOrder',brief:lab(shown),
+    text:`Arrange the following fractions from the <b>${desc?'greatest to the smallest':'smallest to the greatest'}</b>.`,
+    figure:`<div class="figure fracrow">${shown.map(f=>frac(f[0],f[1])).join('<span class="sep">,</span>')}</div>`,
+    walkVisual:`<div class="figure">${sorted.map(f=>`<div>${fbarSVG(f[0],f[1],true)} <b>${fs(f)}</b></div>`).join('')}<p class="muted" style="font-size:15px;margin:4px 0">Smallest at the top, greatest at the bottom.</p></div>`,
+    options:makeOptions(ans,dsList,()=>R.pick(perms)),answer:ans,why,
+    remedy:[
+      {title:'Compare with ½',text:'Double the top. If it is less than the bottom, the fraction is less than ½.',visual:`<div class="figure">${shown.map(f=>`<div>${fbarSVG(f[0],f[1],true)} <b>${fs(f)}</b></div>`).join('')}</div>`,
+        ask:makeAsk('Which fraction is LESS than ½?',fs(f3),[fs(f1),fs(f2)],`${f3[0]} × 2 = ${2*f3[0]}, which is less than ${f3[1]}.`)},
+      {title:`Make ${fs(f2)} into ${D}ths`,ask:makeAsk(`${fs(f2)} = ?/${D}`,String(f2[0]*k),[String(f2[0]),String(f2[0]+k),String(k)],`${f2[1]} × ${k} = ${D}, so ${f2[0]} × ${k}.`)},
+      {title:'Compare the two bigger ones',ask:makeAsk(`${f1[0]}/${D} or ${f2[0]*k}/${D}: which is bigger?`,fs(big),[fs(mid)],`Same bottom now: the bigger top wins. ${Math.max(f1[0],f2[0]*k)} > ${Math.min(f1[0],f2[0]*k)}.`)},
+      {title:'Put them in order',ask:makeAsk(`From the ${desc?'greatest to the smallest':'smallest to the greatest'}:`,ans,dsList.map(d=>d.label),`${desc?'Greatest':'Smallest'} first: ${fs(order[0])}.`)}
+    ],
+    solution:[`${fs(f3)} is less than ½ (${f3[0]} × 2 = ${2*f3[0]} < ${f3[1]}), so it is the smallest.`,`${fs(f2)} = ${f2[0]*k}/${D}`,`${fs(mid)} < ${fs(big)} because ${Math.min(f1[0],f2[0]*k)}/${D} < ${Math.max(f1[0],f2[0]*k)}/${D}`,`Answer: ${ans}`]};
+}
 
 const GEN={timeEnd:genTimeEnd,minutes:genMinutes,fraction:genFraction,money:genMoney,beforeAfter:genBeforeAfter,sets:genSets,squares:genSquares,
   longDiv:genLongDiv,place:genPlace,fracHalf:genFracHalf,fracAdd:genFracAdd,shadeMore:genShadeMore,areaHalves:genAreaHalves,
   transfer:genTransfer,watch:genWatch,groups:genGroups,remaining:genRemaining,trees:genTrees,boxes:genBoxes,ratio:genRatio,sale:genSale,rectArea:genRectArea,barGraph:genBarGraph,
-  missingNum:genMissingNum,divRem:genDivRem,doubleBar:genDoubleBar,barMoney:genBarMoney,fracRest:genFracRest,wire:genWire};
+  missingNum:genMissingNum,divRem:genDivRem,doubleBar:genDoubleBar,barMoney:genBarMoney,fracRest:genFracRest,wire:genWire,fracOrder:genFracOrder,notes:genNotes};
 // ==GEN END==
 
 // ---------- storage ----------
@@ -1403,7 +1474,7 @@ function needsReview(k){const cut=new Date();cut.setDate(cut.getDate()-3);const 
 function weightedPick(keys,count){
   const pool=keys.slice(),out=[];
   while(out.length<count&&pool.length){
-    const w=pool.map(k=>{const st=skillStats(k);return 1+(3-st.stars)*1.5+(needsReview(k)?4:0)+(SKILLS[k].isNew&&st.n<3?5:0)+(SKILLS[k].batch===3&&st.n<3?6:0)});
+    const w=pool.map(k=>{const st=skillStats(k);return 1+(3-st.stars)*1.5+(needsReview(k)?4:0)+(SKILLS[k].isNew&&st.n<3?5:0)+(SKILLS[k].batch===3&&st.n<3?6:0)+(SKILLS[k].batch===4&&st.n<3?9:0)});
     let r=Math.random()*w.reduce((a,b)=>a+b,0),i=0;for(;i<pool.length;i++){r-=w[i];if(r<=0)break}
     out.push(pool.splice(Math.min(i,pool.length-1),1)[0]);
   }return out;
@@ -1726,6 +1797,16 @@ WIDGETS.shadeGrid=function(el,{rows,cols,set,target},done){
     const added=on.size-orig.size;
     el.innerHTML=svg+`</svg><p class="readout">Shaded: <b>${on.size}</b> of ${rows*cols}. Goal: <b>${target}</b>.</p><p class="msg ${on.size===target?'ok':on.size>target?'no':''}">${on.size===target?`Done! You shaded ${added} more part${added===1?'':'s'}. 🎉`:on.size>target?'Too many! Click a yellow part to un-shade it.':''}</p>`;
     if(!fin)el.querySelectorAll('rect.cell').forEach(r=>r.onclick=()=>{const i=+r.dataset.i;on.has(i)?on.delete(i):on.add(i);if(on.size===target){fin=true;draw();done()}else draw()});
+  };draw();
+};
+WIDGETS.swapNotes=function(el,{N,a,b,T},done){
+  let big=0,fin=false;
+  const draw=(msg,cls)=>{const tot=a*(N-big)+b*big;
+    el.innerHTML=`<div class="notes">${Array(N).fill(0).map((_,i)=>`<span class="note ${i<big?'big':''}">$${i<big?b:a}</span>`).join('')}</div>
+    <p class="readout">$${a} notes: <b>${N-big}</b> &nbsp; $${b} notes: <b>${big}</b> &nbsp; Total: <b>$${tot}</b> (need $${T})</p>
+    <div class="btnrow">${fin?'':`<button class="wbtn" id="sw">Change a $${a} note into $${b}</button><button class="wbtn ghost" id="sw0">Start again</button>`}</div><p class="msg ${cls||''}">${msg||''}</p>`;
+    const sw=el.querySelector('#sw');if(sw)sw.onclick=()=>{big++;const t=a*(N-big)+b*big;if(t===T){fin=true;draw(`$${T}! That took ${big} swaps, so there are ${big} $${b} notes. 🎉`,'ok');done()}else if(t>T)draw('Too much! Press "Start again".','no');else draw(`+$${b-a}`,'')};
+    const s0=el.querySelector('#sw0');if(s0)s0.onclick=()=>{big=0;draw()};
   };draw();
 };
 function finish(){
