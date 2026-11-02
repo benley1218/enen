@@ -308,7 +308,16 @@ const SKILLS={
   fracRest:{name:'Fractions: "ate the rest"',short:'Fractions',warm:false,isNew:true,batch:3},
   wire:{name:'Wire: rectangle and square',short:'Geometry',warm:false,isNew:true,batch:3},
   fracOrder:{name:'Arrange fractions in order',short:'Fractions',warm:true,isNew:true,batch:4},
-  notes:{name:'$2 and $5 notes: how many?',short:'Money',warm:false,isNew:true,batch:4}
+  notes:{name:'$2 and $5 notes: how many?',short:'Money',warm:false,isNew:true,batch:4},
+  fracCmp:{name:'Order fractions: make the bottoms the same',short:'Fractions',warm:true,isNew:true,batch:5},
+  fracChain:{name:'Two boxes: ?/20 = 27/? = 3/5',short:'Fractions',warm:true,isNew:true,batch:5},
+  fracBig:{name:'Which fraction is greatest?',short:'Fractions',warm:true,isNew:true,batch:5},
+  digits:{name:'Smallest even / largest odd number',short:'Number',warm:true,isNew:true,batch:5},
+  diffFind:{name:'"Difference" and "more than": add or take away?',short:'Model drawing',warm:false,isNew:true,batch:5},
+  timesDiv:{name:'"3 times as heavy": find the lighter one',short:'Model drawing',warm:false,isNew:true,batch:5},
+  equalStart:{name:'Equal at first, then changes',short:'Model drawing',warm:false,isNew:true,batch:5},
+  stackPerim:{name:'Perimeter of squares in a row',short:'Geometry',warm:false,isNew:true,batch:5},
+  sameDur:{name:'Same movie, another day',short:'Time',warm:false,isNew:true,batch:5}
 };
 const MISTAKES={
   noCarry:'Did not carry 60 minutes into 1 hour',
@@ -362,6 +371,12 @@ const MISTAKES={
   rectOnly:'Wire: counted only the rectangle',sidesOnly:'Wire: added only the sides shown',usedArea:'Wire: used area instead of perimeter',noHalfW:'Wire: square side not halved',
   stopShort:'Notes: stopped at the dollars short, did not divide',otherNote:'Notes: gave the other kind of note',allBig:'Notes: divided the total by one note value',divWrong:'Notes: divided by the note value, not the difference',
   byBottom:'Fractions: ordered by the bottom numbers',byTop:'Fractions: compared tops with different bottoms',reversed:'Fractions: put the order the wrong way round',
+  wrongOpD:'Difference: added or took away the wrong way',grabNums:'Used the numbers without a plan (e.g. 5 × 3)',stopEarly:'Stopped one step early',skipStep:'Skipped a step: used the total for many',
+  gapAsAns:'Model: gave the gap, not 1 unit',firstNotEnd:'Gave the amount at first, not in the end',
+  insideLines:'Perimeter: counted the lines inside',allSquares:'Perimeter: added every square\'s perimeter',onlyLong:'Perimeter: left out the short ends',
+  hourCross:'Time: wrong duration across the hour',backDur:'Time: counted back instead of forwards',
+  ignoreParity:'Even/odd: forgot the number must be even/odd',wrongParity:'Even/odd: mixed up even and odd',leadZero:'Put 0 in front (not a 4-digit number)',
+  chainAdd:'Fractions: added instead of multiplying',chainCopy:'Fractions: copied the simple fraction',offByOne:'Fractions: multiplied by the wrong number',
   other:'Other slip'
 };
 
@@ -659,6 +674,15 @@ const TIPS={
   fracRest:'The whole is 1 = 12/12 (or 8/8, 10/10...). "The rest" = whole − the parts eaten. Make all the bottoms the same first.',
   wire:'The square side is half the rectangle length. Wire = perimeter of rectangle + perimeter of square. Area = side × side.',
   fracOrder:'Find the one less than ½ first. Then make the other bottoms the same and compare the tops.',
+  fracCmp:'Fractions with different bottoms? Find ONE bottom number they all go into. Change every fraction. Then compare the tops.',
+  fracChain:'Find the fraction where you know BOTH numbers. Link every box to that one, never to its neighbour. Multiply top and bottom by the same number.',
+  fracBig:'Same tops? The smaller bottom wins (bigger pieces). Different bottoms? Make them the same first.',
+  digits:'Choose the LAST digit first (even: 0, 2, 4, 6, 8; odd: 1, 3, 5, 7, 9). 0 can never go first.',
+  diffFind:'Draw two bars first. Want the longer bar? Add the difference. Want the shorter bar? Take it away. Check: is the greater number really greater?',
+  timesDiv:'Find ONE of the big thing first. "3 times as heavy" means the other thing is 3 times LIGHTER, so divide.',
+  equalStart:'Equal at first = two bars the same length. The gap in the end = what one lost + what the other got. Count the units in the gap.',
+  stackPerim:'Perimeter = only the OUTSIDE edge. Trace it with your finger. Lines inside the figure don\'t count.',
+  sameDur:'Find how long it lasts first: jump to the next whole hour, then hours, then minutes. Then count back from the end (or forwards from the start).',
   notes:'Pretend all notes are the smaller note. Find how much short. Each swap adds the difference between the notes. Short ÷ difference = number of bigger notes.'
 };
 // ==== NEW TOPICS (from the second set of papers) ====
@@ -1422,10 +1446,334 @@ function genFracOrder(){
     solution:[`${fs(f3)} is less than ½ (${f3[0]} × 2 = ${2*f3[0]} < ${f3[1]}), so it is the smallest.`,`${fs(f2)} = ${f2[0]*k}/${D}`,`${fs(mid)} < ${fs(big)} because ${Math.min(f1[0],f2[0]*k)}/${D} < ${Math.max(f1[0],f2[0]*k)}/${D}`,`Answer: ${ans}`]};
 }
 
+// ==== FIX-UPS FROM THE P3 FINAL EXAM (batch 5) ====
+function lcm(a,b){return a/gcd(a,b)*b}
+const FR12=(()=>{const o=[];for(let b=2;b<=12;b++)for(let a=1;a<b;a++)if(gcd(a,b)===1)o.push([a,b]);return o})();
+const fsx=f=>f[0]+'/'+f[1];
+function fracBars(list,note){return `<div class="figure">${list.map(f=>`<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><b style="min-width:${note?96:44}px;text-align:right;white-space:nowrap">${fsx(f)}${note?` = ${note(f)}`:''}</b>${fbarSVG(f[0],f[1],false).replace('width="320"','width="100%" style="max-width:320px;min-width:0;flex:1"')}</div>`).join('')}</div>`}
+
+// ---- order 3 fractions with different bottoms (exam: 5/9, 2/3, 1/2) ----
+function genFracCmp(){
+  let cand,L,desc,sorted,order,ans,bB,bT;
+  const lab=a=>a.map(fsx).join(', ');
+  for(let g=0;g<600;g++){
+    if(R.rand()<0.4){
+      const fam=R.pick([[2,3,9],[2,3,6],[2,4,8],[2,5,10],[2,3,12],[2,4,12],[3,4,12],[2,6,12],[3,6,9]]);
+      cand=fam.map(b=>b===2?[1,2]:R.pick(FR12.filter(f=>f[1]===b)));
+    }else{
+      const D=R.pick([6,8,10,12]);const bs=R.shuffle([2,3,4,5,6,8,10,12].filter(b=>b<=D&&D%b===0)).slice(0,3);
+      if(bs.length<3)continue;cand=bs.map(b=>R.pick(FR12.filter(f=>f[1]===b)));
+    }
+    if(cand.every(f=>f[0]===1)||new Set(cand.map(f=>f[1])).size<3||new Set(cand.map(f=>f[0]/f[1])).size<3)continue;
+    L=cand.reduce((m,f)=>lcm(m,f[1]),1);if(L>18)continue;
+    desc=R.rand()<0.6;
+    sorted=cand.slice().sort((x,y)=>x[0]/x[1]-y[0]/y[1]);order=desc?sorted.slice().reverse():sorted;ans=lab(order);
+    const byB=cand.slice().sort((x,y)=>x[1]-y[1]),byT=cand.slice().sort((x,y)=>x[0]-y[0]||x[1]-y[1]);
+    bB=lab(desc?byB.slice().reverse():byB);bT=lab(desc?byT.slice().reverse():byT);
+    if(bB===ans||bT===ans)continue;
+    break}
+  const conv=f=>`${f[0]*(L/f[1])}/${L}`,dir=desc?'greatest to the smallest':'smallest to the greatest';
+  const shown=R.shuffle(cand),bs=shown.map(f=>f[1]);
+  const pick=cand.filter(f=>f[1]!==L&&!(f[0]===1&&f[1]===2));const hard=(pick.length?R.pick(pick):cand[0]),hk=L/hard[1];
+  const rev=lab(desc?sorted:sorted.slice().reverse());
+  const dsList=[{label:bB,code:'byBottom'},{label:bT,code:'byTop'},{label:rev,code:'reversed'}];
+  const perms=[[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]].map(p=>lab(p.map(i=>cand[i])));
+  const why={
+    byBottom:`A bigger bottom number does NOT make a bigger fraction. The bottom only says how many pieces the whole is cut into.`,
+    byTop:`We can't compare the tops when the bottoms are different. Make all the bottoms ${L} first.`,
+    reversed:`Right idea, wrong way round! The question asks from the ${dir}.`,
+    other:`Change all three fractions into ${L}ths. Then compare the tops.`
+  };
+  const wrongL=[bs[0]*bs[1]*bs[2],Math.max(...bs),bs[0]+bs[1]+bs[2]].filter(v=>v!==L).map(String);
+  return {skill:'fracCmp',brief:lab(shown),
+    text:`Arrange the following fractions from the <b>${dir}</b>.`,
+    figure:`<div class="figure fracrow">${shown.map(f=>frac(f[0],f[1])).join('<span class="sep">,</span>')}</div>`,
+    walkVisual:fracBars(order,conv)+`<p class="muted" style="font-size:15px;margin:4px 0">Same bottom (${L}), so the bigger top is the bigger fraction.</p>`,
+    options:makeOptions(ans,dsList,()=>R.pick(perms)),answer:ans,why,
+    remedy:[
+      {title:'Find one bottom number for all',text:`Count up in ${Math.max(...bs)}s until all the bottoms (${bs.join(', ')}) go into it.`,
+        ask:makeAsk(`Which number can ${bs.join(', ')} all go into?`,String(L),wrongL,`Count in ${Math.max(...bs)}s: ${[1,2,3].map(i=>Math.max(...bs)*i).join(', ')}... ${L} works for ${bs.join(', ')}.`)},
+      {title:`Change ${fsx(hard)} into ${L}ths`,ask:makeAsk(`${fsx(hard)} = ?/${L}`,String(hard[0]*hk),[String(hard[0]),String(hard[0]+hk),String(hk)],`${hard[1]} × ${hk} = ${L}. Do the same to the top: ${hard[0]} × ${hk}.`)},
+      {title:'Compare the tops',visual:`<div class="figure">${cand.map(f=>`<p class="readout">${fsx(f)} = <b>${conv(f)}</b></p>`).join('')}</div>`,
+        ask:makeAsk(`From the ${dir}:`,ans,dsList.map(d=>d.label),`All the bottoms are ${L} now. ${desc?'Biggest':'Smallest'} top first.`)}
+    ],
+    solution:[`Make all the bottoms the same: ${L}.`,...cand.map(f=>`${fsx(f)} = ${conv(f)}`),`Compare the tops: ${order.map(conv).join(', ')}`,`Answer: ${ans}`]};
+}
+
+// ---- two boxes: 12/20 = 27/? = 3/5 (exam Q) ----
+function genFracChain(){
+  let p,q,k1,k2;
+  for(let g=0;g<400;g++){q=R.int(2,6);p=R.int(1,q-1);if(gcd(p,q)!==1)continue;k1=R.int(2,8);k2=R.int(2,9);if(k1===k2||q*k1>40||q*k2>60)continue;break}
+  const A=q*k1,x=p*k1,B=p*k2,y=q*k2,gap=q-p,ans=`${x} and ${y}`;
+  const ds=[{label:A-gap>0?`${A-gap} and ${B+gap}`:null,code:'chainAdd'},{label:`${p} and ${q}`,code:'chainCopy'},{label:`${x} and ${y+q}`,code:'offByOne'}];
+  const why={
+    chainAdd:`Equal fractions are never made by adding or taking away. We MULTIPLY the top and bottom by the same number.`,
+    chainCopy:`${p}/${q} is the fraction we use to help us. The boxes need bigger numbers: ${A} and ${B} are much bigger than ${q} and ${p}.`,
+    offByOne:`The first box is right! For the second box: ${p} × ${k2} = ${B}, so the bottom is ${q} × ${k2}.`,
+    other:`Link each box to ${p}/${q}, the fraction where you know both numbers. Don't link it to its neighbour.`
+  };
+  const box=`<span class="box"></span>`;
+  return {skill:'fracChain',brief:`?/${A} = ${B}/? = ${p}/${q}`,
+    text:'Fill in the missing numbers. Give the <b>first box</b>, then the <b>second box</b>.',
+    figure:`<div class="figure"><span class="fr"><span class="frac">${box}<i></i><span>${A}</span></span> = <span class="frac"><span>${B}</span><i></i>${box}</span> = ${frac(p,q)}</span></div>`,
+    walkVisual:`<div class="figure fracrow">${frac(p,q)}<span class="sep">× ${k1} →</span>${frac(x,A)}</div><div class="figure fracrow">${frac(p,q)}<span class="sep">× ${k2} →</span>${frac(B,y)}</div>`,
+    options:makeOptions(ans,ds,()=>`${x+R.pick([-2,-1,1,2])} and ${y+R.pick([-q,0,q])}`),answer:ans,why,
+    remedy:[
+      {title:'Start from the one you know',ask:makeAsk('Which fraction has BOTH numbers?',`${p}/${q}`,[`?/${A}`,`${B}/?`],`Every box links to ${p}/${q}, not to its neighbour.`)},
+      {title:'First box: what did we multiply by?',ask:makeAsk(`${q} × ? = ${A}`,String(k1),[String(k1+1),String(A-q),String(k2)],`Count in ${q}s up to ${A}.`)},
+      {title:'First box',ask:makeAsk(`Do the same to the top: ${p} × ${k1} = ?`,String(x),[String(x+1),String(A-gap),String(p)],`Whatever we do to the bottom, we do to the top.`)},
+      {title:'Second box: what did we multiply by?',ask:makeAsk(`${p} × ? = ${B}`,String(k2),[String(k2+1),String(B-p),String(k1)],`Count in ${p}s up to ${B}.`)},
+      {title:'Second box',ask:makeAsk(`Do the same to the bottom: ${q} × ${k2} = ?`,String(y),[String(y+q),String(B+gap),String(q)],`Multiply the bottom by ${k2} too.`)}
+    ],
+    solution:[`${p}/${q}: ${q} × ${k1} = ${A}, so ${p} × ${k1} = ${x}. First box: ${x}`,`${p}/${q}: ${p} × ${k2} = ${B}, so ${q} × ${k2} = ${y}. Second box: ${y}`,`Check: ${x}/${A} and ${B}/${y} both simplify to ${p}/${q} ✓`]};
+}
+
+// ---- pick the greatest / smallest fraction ----
+function genFracBig(){
+  const great=R.rand()<0.6,word=great?'greatest':'smallest';
+  let list,ans,ds,remedy,sol,wv;
+  if(R.rand()<0.4){
+    const n=R.pick([1,1,2,3]);const bs=R.shuffle(Array.from({length:12-n},(_,i)=>i+n+1)).slice(0,4).sort((a,b)=>a-b);
+    list=bs.map(b=>[n,b]);const win=great?list[0]:list[3],lose=great?list[3]:list[0];ans=fsx(win);
+    ds=[{label:fsx(lose),code:'bigNums'}];
+    wv=fracBars(list);
+    remedy=[{title:'Same tops',visual:wv,ask:makeAsk(`All the tops are ${n}. Cutting a cake into MORE pieces makes each piece…`,'Smaller',['Bigger','The same size'],'More people sharing one cake means less for each person.')},
+      {title:'Pick it',ask:makeAsk(`Which is the ${word}?`,ans,list.map(fsx),great?`Fewest pieces = biggest pieces: ${fsx(win)}.`:`Most pieces = smallest pieces: ${fsx(win)}.`)}];
+    sol=[`All the tops are ${n}, so look at the bottoms.`,`The bigger the bottom, the smaller each piece.`,`The ${word} is ${ans}.`];
+  }else{
+    let L;
+    for(let g=0;g<400;g++){const D=R.pick([6,8,10,12]);const bs=[2,3,4,5,6,8,10,12].filter(b=>b<=D&&D%b===0);
+      list=R.shuffle(FR12.filter(f=>bs.includes(f[1]))).slice(0,4);const vs=list.map(f=>f[0]/f[1]);if(new Set(vs).size<4||new Set(list.map(f=>f[1])).size<3)continue;
+      L=list.reduce((m,f)=>lcm(m,f[1]),1);const s=list.slice().sort((a,b)=>a[0]/a[1]-b[0]/b[1]);const win=great?s[3]:s[0];
+      const bigB=list.slice().sort((a,b)=>great?b[1]-a[1]:a[1]-b[1])[0],bigT=list.slice().sort((a,b)=>great?b[0]-a[0]:a[0]-b[0])[0];
+      if(bigB===win||bigT===win)continue;ans=fsx(win);ds=[{label:fsx(bigB),code:'bigNums'},{label:fsx(bigT),code:'byTop'}];break}
+    const conv=f=>`${f[0]*(L/f[1])}/${L}`;
+    wv=fracBars(list,conv);
+    remedy=[{title:'Make the bottoms the same',ask:makeAsk(`All these bottoms (${list.map(f=>f[1]).join(', ')}) go into…`,String(L),[String(L*2),String(Math.max(...list.map(f=>f[1]))===L?L+2:Math.max(...list.map(f=>f[1]))),String(list.reduce((s,f)=>s+f[1],0))],`Count in ${Math.max(...list.map(f=>f[1]))}s.`)},
+      {title:'Compare the tops',visual:`<div class="figure">${list.map(f=>`<p class="readout">${fsx(f)} = <b>${conv(f)}</b></p>`).join('')}</div>`,ask:makeAsk(`Which is the ${word}?`,ans,list.map(fsx),`Same bottoms now: the ${great?'biggest':'smallest'} top wins.`)}];
+    sol=[`Make the bottoms ${L}: ${list.map(f=>`${fsx(f)} = ${conv(f)}`).join(', ')}`,`The ${word} is ${ans}.`];
+  }
+  return {skill:'fracBig',brief:list.map(fsx).join(', '),text:`Which fraction is the <b>${word}</b>?`,
+    figure:`<div class="figure fracrow">${list.map(f=>frac(f[0],f[1])).join('<span class="sep">,</span>')}</div>`,walkVisual:wv,
+    options:makeOptions(ans,ds,()=>R.pick(list.map(fsx))),answer:ans,
+    why:{bigNums:`Bigger numbers don't mean a bigger fraction. A bigger bottom means the whole is cut into MORE, SMALLER pieces.`,byTop:`We can't compare the tops when the bottoms are different. Make the bottoms the same first.`,other:`Make the bottoms the same, then compare the tops.`},
+    remedy,solution:sol};
+}
+
+// ---- "difference" / "more than": add or take away? (exam Q20, Q25b) ----
+function diffSVG(bigL,bigT,smL,smT,dT){
+  const x0=82,W=230,w2=150;
+  return `<svg viewBox="0 0 ${x0+W+20} 120" width="100%" style="max-width:${x0+W+40}px" role="img" aria-label="Bar model: ${bigL} is longer than ${smL}">
+  <text x="0" y="33" font-size="15" font-weight="700" fill="currentColor">${bigL}</text><rect x="${x0}" y="12" width="${W}" height="32" rx="5" fill="var(--blue-soft)" stroke="var(--blue)" stroke-width="2"/><text x="${x0+W/2}" y="34" text-anchor="middle" font-size="17" font-weight="700" fill="currentColor">${bigT}</text>
+  <text x="0" y="83" font-size="15" font-weight="700" fill="currentColor">${smL}</text><rect x="${x0}" y="62" width="${w2}" height="32" rx="5" fill="var(--pink-soft)" stroke="var(--pink)" stroke-width="2"/><text x="${x0+w2/2}" y="84" text-anchor="middle" font-size="17" font-weight="700" fill="currentColor">${smT}</text>
+  <rect x="${x0+w2}" y="62" width="${W-w2}" height="32" rx="5" fill="var(--sun-soft)" stroke="var(--sun)" stroke-width="2" stroke-dasharray="6 4"/><text x="${x0+w2+(W-w2)/2}" y="84" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${dT}</text>
+  <text x="${x0+w2+(W-w2)/2}" y="114" text-anchor="middle" font-size="13" fill="var(--muted)">difference</text></svg>`;
+}
+function genDiffFind(){
+  let text,bigL,smL,bigV,smV,d,askBig,unit='';
+  if(R.rand()<0.45){
+    d=R.int(15,95)*10+R.pick([0,0,5,1,4]);smV=R.int(1200,6500);bigV=smV+d;askBig=R.rand()<0.6;bigL='Greater';smL='Smaller';
+    text=askBig?`The difference between two numbers is <b>${d}</b>. The <b>smaller</b> number is <b>${smV}</b>. What is the <b>greater</b> number?`
+      :`The difference between two numbers is <b>${d}</b>. The <b>greater</b> number is <b>${bigV}</b>. What is the <b>smaller</b> number?`;
+  }else{
+    const [k1,k2]=R.shuffle(KIDS).slice(0,2),it=R.pick(['stickers','stamps','marbles','cards','beads']);unit=' '+it;
+    d=R.int(120,480);smV=R.int(900,2400);bigV=smV+d;askBig=R.rand()<0.5;
+    const fewer=R.rand()<0.5;bigL=k1[0];smL=k2[0];
+    const rel=fewer?`${smL} has <b>${d} fewer</b> ${it} than ${bigL}.`:`${bigL} has <b>${d} more</b> ${it} than ${smL}.`;
+    text=askBig?`${rel} ${smL} has <b>${smV}</b> ${it}. How many ${it} does ${bigL} have?`:`${rel} ${bigL} has <b>${bigV}</b> ${it}. How many ${it} does ${smL} have?`;
+  }
+  const ans=askBig?bigV:smV,wrong=askBig?smV-d:bigV+d,known=askBig?smV:bigV;
+  const why={
+    wrongOpD:askBig?`Check: the answer should be the BIGGER one, but ${wrong} is smaller than ${known}! The longer bar = shorter bar + the difference.`
+      :`Check: the answer should be the SMALLER one, but ${wrong} is bigger than ${known}! The shorter bar = longer bar − the difference.`,
+    other:`Draw two bars. Which one is longer? Then add or take away the difference.`
+  };
+  const vis=diffSVG(bigL,askBig?'?':bigV,smL,askBig?smV:'?',d);
+  return {skill:'diffFind',text,walkVisual:vis,
+    options:makeOptions(ans+unit,[{label:wrong>0?wrong+unit:null,code:'wrongOpD'}],()=>Math.max(1,ans+R.pick([-100,100,-10,10,-1000,1000]))+unit),answer:ans+unit,why,
+    remedy:[
+      {title:'Who is bigger?',ask:makeAsk('Which one is bigger?',bigL,[smL],smL==='Smaller'?'The question tells us which is greater.':`"More" goes with the one who has more. "Fewer" goes with the one who has less.`)},
+      {title:'Draw the model',visual:vis,ask:makeAsk(`We want the ${askBig?'LONGER':'SHORTER'} bar. So we…`,askBig?`Add ${d}`:`Take away ${d}`,[askBig?`Take away ${d}`:`Add ${d}`],askBig?`Longer bar = shorter bar + the difference.`:`Shorter bar = longer bar − the difference.`)},
+      {title:'Work it out',ask:makeAsk(`${known} ${askBig?'+':'−'} ${d} = ?`,String(ans),[String(wrong),String(ans+100),String(ans-10)],`Write it in columns on paper.`)}
+    ],
+    solution:[`${bigL} is the longer bar. ${smL} is the shorter bar.`,`${askBig?`${bigL} = ${smV} + ${d} = ${bigV}`:`${smL} = ${bigV} − ${d} = ${smV}`}`,`Check: ${bigV} is bigger than ${smV} ✓`]};
+}
+
+// ---- "k times as heavy": divide, don't multiply (exam rice & school bags) ----
+function unitsSVG(bL,k,bT,sL,sT){
+  const x0=118,U=Math.min(60,210/k);let s=`<svg viewBox="0 0 ${x0+U*k+20} 124" width="100%" style="max-width:${x0+U*k+40}px" role="img" aria-label="Bar model: ${bL} is ${k} units, ${sL} is 1 unit">`;
+  s+=`<text x="0" y="50" font-size="15" font-weight="700" fill="currentColor">${bL}</text>`;
+  for(let i=0;i<k;i++)s+=`<rect x="${x0+i*U}" y="30" width="${U}" height="30" rx="4" fill="var(--blue-soft)" stroke="var(--blue)" stroke-width="2"/>`;
+  s+=`<path d="M${x0} 24 v-6 H${x0+U*k} v6" fill="none" stroke="currentColor" stroke-width="2"/><text x="${x0+U*k/2}" y="13" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">${bT}</text>`;
+  s+=`<text x="0" y="102" font-size="15" font-weight="700" fill="currentColor">${sL}</text><rect x="${x0}" y="82" width="${U}" height="30" rx="4" fill="var(--pink-soft)" stroke="var(--pink)" stroke-width="2"/><text x="${x0+U/2}" y="103" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${sT}</text>`;
+  return s+'</svg>';
+}
+function genTimesDiv(){
+  const c=R.pick([['bag of rice','bags of rice','school bag','school bags'],['watermelon','watermelons','pineapple','pineapples'],['box of books','boxes of books','file','files'],['bag of flour','bags of flour','packet of sugar','packets of sugar']]);
+  const m=R.int(2,9),k=R.int(2,5),N=R.int(3,8),b=m*k,T=N*b,many=R.rand()<0.35,M=R.int(2,6);
+  const ans=many?M*m:m,u=' kg';
+  const ds=[{label:N*k!==ans?N*k+u:null,code:'grabNums'},{label:b+u,code:'stopEarly'},{label:T%k===0&&T/k!==ans?(T/k)+u:null,code:'skipStep'}];
+  if(many)ds.push({label:m+u,code:'halfStop'});
+  const why={
+    grabNums:`${N} × ${k} uses the numbers but not the story. "${k} times as heavy" tells us the ${c[2]} is LIGHTER, so we divide.`,
+    stopEarly:`${b} kg is one ${c[0]}. Keep going: the ${c[2]} is ${k} times lighter.`,
+    skipStep:`${T} kg is ALL ${N} ${c[1]}. Find ONE ${c[0]} first: ${T} ÷ ${N}.`,
+    halfStop:`That is one ${c[2]}. The question asks for ${M} of them.`,
+    other:`Find 1 ${c[0]} first. Then the ${c[2]} is 1 unit when the ${c[0]} is ${k} units.`
+  };
+  return {skill:'timesDiv',brief:`${N} ${c[1]} = ${T} kg, ×${k}`,
+    text:`The total mass of <b>${N} similar ${c[1]}</b> is <b>${T} kg</b>. The mass of each ${c[0]} is <b>${k} times</b> the mass of a ${c[2]}. ${many?`What is the total mass of <b>${M} ${c[3]}</b>?`:`What is the mass of <b>one ${c[2]}</b>?`}`,
+    walkVisual:unitsSVG('1 '+c[0],k,b+' kg','1 '+c[2],m+' kg'),
+    options:makeOptions(ans+u,ds,()=>(ans+R.pick([-2,-1,1,2,3]))+u),answer:ans+u,why,
+    remedy:[
+      {title:`One ${c[0]} first`,ask:makeAsk(`${N} ${c[1]} = ${T} kg. 1 ${c[0]} = ?`,b+u,[T*N+u,(T-N)+u,N*k+u],`Share ${T} kg into ${N} equal parts: ${T} ÷ ${N}.`)},
+      {title:'Draw the units',visual:unitsSVG('1 '+c[0],k,b+' kg','1 '+c[2],'?'),ask:makeAsk(`${k} units = ${b} kg. 1 unit (1 ${c[2]}) = ?`,m+u,[b*k+u,(b-k)+u,(b+k)+u],`The ${c[0]} is ${k} units. Share ${b} kg into ${k}: ${b} ÷ ${k}.`)},
+      ...(many?[{title:`${M} ${c[3]}`,ask:makeAsk(`${M} × ${m} kg = ?`,ans+u,[m+u,(M+m)+u,(ans+m)+u],`${M} ${c[3]}, each ${m} kg.`)}]:[])
+    ],
+    solution:[`1 ${c[0]} = ${T} ÷ ${N} = ${b} kg`,`1 ${c[2]} = ${b} ÷ ${k} = ${m} kg`,...(many?[`${M} ${c[3]} = ${M} × ${m} = ${ans} kg`]:[])]};
+}
+
+// ---- equal at first, then one gives away and one gets more (exam beads Q23) ----
+function eqSVG(A,B,x,y,k,u,showU){
+  const x0=82,W=Math.min(80,240/k),xw=x/u*W,yw=y/u*W;
+  let s=`<svg viewBox="0 0 ${x0+k*W+20} 168" width="100%" style="max-width:${x0+k*W+40}px" role="img" aria-label="Bar model: ${A} and ${B} had the same at first">`;
+  const box=(X,Y,w,f,st,t,dash)=>`<rect x="${X}" y="${Y}" width="${w}" height="32" rx="4" fill="${f}" stroke="${st}" stroke-width="2"${dash?' stroke-dasharray="6 4"':''}/><text x="${X+w/2}" y="${Y+22}" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">${t}</text>`;
+  s+=`<text x="0" y="66" font-size="15" font-weight="700" fill="currentColor">${A}</text>`+box(x0,44,W,'var(--pink-soft)','var(--pink)',showU?u:'1 unit')+box(x0+W,44,xw,'var(--paper)','var(--muted)',`−${x}`,true);
+  s+=`<text x="0" y="122" font-size="15" font-weight="700" fill="currentColor">${B}</text>`+box(x0,100,W,'var(--pink-soft)','var(--pink)',showU?u:'1 unit')+box(x0+W,100,xw,'var(--blue-soft)','var(--blue)',x)+box(x0+W+xw,100,yw,'var(--sun-soft)','var(--sun)',`+${y}`);
+  s+=`<line x1="${x0+W+xw}" y1="36" x2="${x0+W+xw}" y2="140" stroke="var(--muted)" stroke-dasharray="4 4"/><text x="${x0+(W+xw)/2}" y="26" text-anchor="middle" font-size="13" fill="var(--muted)">same at first</text>`;
+  s+=`<path d="M${x0+W} 140 v8 H${x0+k*W} v-8" fill="none" stroke="currentColor" stroke-width="2"/><text x="${x0+W+(k-1)*W/2}" y="164" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">${k-1} units = ${x} + ${y}</text>`;
+  return s+'</svg>';
+}
+function genEqualStart(){
+  let k,u,x,y;
+  for(let g=0;g<300;g++){k=R.pick([3,3,4]);u=R.int(16,60);const G=(k-1)*u;x=R.int(Math.max(8,Math.ceil(u*0.35)),G-Math.max(8,Math.ceil(u*0.35)));y=G-x;if(y<8||y<u*0.35||x===y||x*k===u)continue;break}
+  const [a,b]=R.shuffle(KIDS).slice(0,2),it=R.pick(['beads','stickers','marbles','stamps']);
+  const act=R.pick([[`gave away <b>${x}</b> of ${a[2]} ${it}`,`bought another <b>${y}</b> ${it}`],[`used <b>${x}</b> ${it}`,`received <b>${y}</b> more ${it}`]]);
+  const mode=R.pick(['aEnd','aEnd','bEnd','first']);
+  const ans=mode==='aEnd'?u:mode==='bEnd'?k*u:u+x;
+  const q=mode==='aEnd'?`How many ${it} did ${a[0]} have <b>in the end</b>?`:mode==='bEnd'?`How many ${it} did ${b[0]} have <b>in the end</b>?`:`How many ${it} did each of them have <b>at first</b>?`;
+  const ds=[{label:String(x*k),code:'grabNums'},{label:String(x+y),code:'gapAsAns'},{label:(x+y)%k===0?String((x+y)/k):null,code:'divM'}];
+  if(mode!=='first')ds.push({label:String(u+x),code:'firstNotEnd'});else ds.push({label:String(u),code:'endTotal'});
+  const why={
+    grabNums:`${x} × ${k} uses the numbers but not the story. Draw two bars that are the SAME length at first.`,
+    gapAsAns:`${x+y} is the GAP between them in the end. The gap is ${k-1} units, not 1 unit.`,
+    divM:`${b[0]} has ${k} units, ${a[0]} has 1 unit, so the gap is ${k} − 1 = ${k-1} units. Divide by ${k-1}.`,
+    firstNotEnd:`That is how many they had at first. The question asks about the end.`,
+    endTotal:`That is ${a[0]}'s amount in the end. At first ${a[0]} had ${x} more.`,
+    other:`Draw two equal bars. Take ${x} off one and add ${y} to the other.`
+  };
+  return {skill:'equalStart',brief:`gave ${x}, got ${y}, ${k} times`,
+    text:`${a[0]} and ${b[0]} had an <b>equal number</b> of ${it} at first. Then, ${a[0]} ${act[0]} and ${b[0]} ${act[1]}. In the end, ${b[0]} had <b>${k} times</b> as many ${it} as ${a[0]}. ${q}`,
+    walkVisual:eqSVG(a[0],b[0],x,y,k,u,true),
+    options:makeOptions(String(ans),ds,()=>String(ans+R.pick([-6,-3,3,6,9]))),answer:String(ans),why,
+    remedy:[
+      {title:'Same at first',text:`Draw two bars, the same length. ${a[0]} loses ${x}. ${b[0]} gets ${y} more.`,ask:makeAsk(`In the end, how many more ${it} does ${b[0]} have than ${a[0]}?`,String(x+y),[String(Math.abs(y-x)),String(y),String(x*k)],`${a[0]} went down by ${x} and ${b[0]} went up by ${y}. The gap grows by both: ${x} + ${y}.`)},
+      {title:'Units in the end',visual:eqSVG(a[0],b[0],x,y,k,u,false),ask:makeAsk(`${a[0]} = 1 unit. ${b[0]} = ${k} units. The gap is how many units?`,`${k-1} units`,[`${k} units`,`${k+1} units`,'1 unit'],`${k} − 1 = ${k-1}`)},
+      {title:'Find 1 unit',ask:makeAsk(`${k-1} units = ${x+y}. 1 unit = ?`,String(u),[String((x+y)*(k-1)),String(x+y),String(u+x)],`${x+y} ÷ ${k-1}`)},
+      ...(mode==='bEnd'?[{title:`${b[0]} in the end`,ask:makeAsk(`${b[0]} = ${k} units = ${k} × ${u} = ?`,String(k*u),[String(u),String(k*u+y),String(u+x)],`${k} units of ${u}.`)}]:[]),
+      ...(mode==='first'?[{title:'At first',ask:makeAsk(`At first, ${a[0]} had 1 unit + ${x} = ?`,String(u+x),[String(u),String(u+y),String(k*u)],`${a[0]} gave away ${x}, so add it back: ${u} + ${x}.`)}]:[])
+    ],
+    solution:[`Gap in the end = ${x} + ${y} = ${x+y}`,`${a[0]} = 1 unit, ${b[0]} = ${k} units, so the gap = ${k-1} units`,`1 unit = ${x+y} ÷ ${k-1} = ${u}`,mode==='aEnd'?`${a[0]} in the end = ${u}`:mode==='bEnd'?`${b[0]} in the end = ${k} × ${u} = ${k*u}`:`At first = ${u} + ${x} = ${u+x}`]};
+}
+
+// ---- perimeter of squares in a row (exam: 3 squares, 7 cm) ----
+function stackFig(n,s,vert,outline){
+  const S=48,w=vert?S:S*n,h=vert?S*n:S,ox=vert?80:20,oy=vert?10:34;let r=`<svg viewBox="0 0 ${ox+w+30} ${oy+h+20}" width="${Math.min(320,ox+w+30)}" role="img" aria-label="${n} identical squares ${vert?'one on top of another':'side by side'}">`;
+  for(let i=0;i<n;i++)r+=`<rect x="${ox+(vert?0:i*S)}" y="${oy+(vert?i*S:0)}" width="${S}" height="${S}" fill="none" stroke="${outline?'var(--muted)':'currentColor'}" stroke-width="2.5"${outline?' stroke-dasharray="5 4"':''}/>`;
+  if(outline)r+=`<rect x="${ox}" y="${oy}" width="${w}" height="${h}" fill="none" stroke="var(--coral)" stroke-width="5"/>`;
+  r+=vert?`<line x1="${ox-14}" y1="${oy}" x2="${ox-14}" y2="${oy+S}" stroke="currentColor" stroke-width="1.5"/><path d="M${ox-19} ${oy+6} l5 -6 l5 6 M${ox-19} ${oy+S-6} l5 6 l5 -6" fill="none" stroke="currentColor"/><text x="${ox-20}" y="${oy+S/2+5}" text-anchor="end" font-size="15" font-weight="700" fill="currentColor">${s} cm</text>`
+    :`<line x1="${ox}" y1="${oy-12}" x2="${ox+S}" y2="${oy-12}" stroke="currentColor" stroke-width="1.5"/><path d="M${ox+6} ${oy-17} l-6 5 l6 5 M${ox+S-6} ${oy-17} l6 5 l-6 5" fill="none" stroke="currentColor"/><text x="${ox+S/2}" y="${oy-20}" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${s} cm</text>`;
+  return r+'</svg>';
+}
+function genStackPerim(){
+  const n=R.pick([2,3,3,4,5]),s=R.int(3,9),vert=R.rand()<0.6,area=R.rand()<0.25,sides=2*n+2;
+  const base=`The figure below is made up of <b>${n} identical squares</b>, placed ${vert?'one on top of another':'side by side'}. `;
+  const fig=`<div class="figure">${stackFig(n,s,vert,false)}</div>`;
+  if(area){const ans=n*s*s;
+    return {skill:'stackPerim',text:base+'Find the <b>total area</b> of the figure.',figure:fig,walkVisual:stackFig(n,s,vert,false),
+      options:makeOptions(ans+' cm²',[{label:s*s+' cm²',code:'oneSquare'},{label:sides*s+' cm²',code:'perimeter'},{label:(n*s)*(n*s)+' cm²',code:'bigSquare'}],()=>(ans+R.pick([-s,s,2*s]))+' cm²'),answer:ans+' cm²',
+      why:{oneSquare:`That is ONE square. There are ${n}.`,perimeter:`That is the distance around (perimeter). Area is the space inside.`,bigSquare:`${n*s} × ${n*s} would be one giant square. The figure is ${n} small squares.`,other:`Area of 1 square = ${s} × ${s}. Then × ${n}.`},
+      remedy:[{title:'One square',ask:makeAsk(`Area of 1 square = ${s} cm × ${s} cm = ?`,s*s+' cm²',[2*s+' cm²',4*s+' cm²',(s+s)+' cm²'],`Area = side × side.`)},{title:`All ${n} squares`,ask:makeAsk(`${n} × ${s*s} = ?`,ans+' cm²',[s*s+' cm²',sides*s+' cm²',(ans+s)+' cm²'],`${n} identical squares.`)}],
+      solution:[`Area of 1 square = ${s} × ${s} = ${s*s} cm²`,`Total area = ${n} × ${s*s} = ${ans} cm²`]};}
+  const ans=sides*s;
+  return {skill:'stackPerim',text:base+'Find the <b>perimeter</b> of the figure.',figure:fig,walkVisual:stackFig(n,s,vert,true),
+    options:makeOptions(ans+' cm',[{label:(3*n+1)*s+' cm',code:'insideLines'},{label:4*n*s+' cm',code:'allSquares'},{label:2*n*s+' cm',code:'onlyLong'}],()=>(ans+R.pick([-s,s,2*s,-2*s]))+' cm'),answer:ans+' cm',
+    why:{insideLines:`You counted the lines INSIDE the figure too. Perimeter is only the outside edge, like walking around a fence.`,allSquares:`Adding every square's perimeter counts the lines where the squares touch. Those are inside, not on the edge.`,onlyLong:`You counted the two long sides. Don't forget the ${s} cm at each short end.`,other:`Trace the outside edge with your finger and count the ${s} cm sides.`},
+    remedy:[
+      {title:'Trace the outside',text:'The thick red line is the perimeter. The dashed lines inside are NOT part of it.',visual:stackFig(n,s,vert,true),ask:makeAsk(`How many ${s} cm sides are on the red line?`,String(sides),[String(3*n+1),String(4*n),String(2*n)],`${n} on one long side, ${n} on the other, and 1 at each end: ${n} + ${n} + 1 + 1.`)},
+      {title:'Work it out',ask:makeAsk(`${sides} × ${s} cm = ?`,ans+' cm',[(3*n+1)*s+' cm',4*n*s+' cm',(ans+s)+' cm'],`Or add the long sides and the short ends: ${n*s} + ${s} + ${n*s} + ${s}.`)}
+    ],
+    solution:[`Long side = ${n} × ${s} = ${n*s} cm, short side = ${s} cm`,`Perimeter = ${n*s} + ${s} + ${n*s} + ${s} = ${ans} cm`,`(The lines inside don't count.)`]};
+}
+
+// ---- same movie, another day (exam Q21) ----
+function hopTxt(a,b){const out=[t12(a)];let c=a;if(c%60){const nx=c+60-c%60;if(nx<=b){out.push(`<small>+${nx-c} min</small>`,t12(nx));c=nx}}const h=Math.floor((b-c)/60);if(h){out.push(`<small>+${h} h</small>`,t12(c+h*60));c+=h*60}if(b>c)out.push(`<small>+${b-c} min</small>`,t12(b));return `<p class="readout">${out.join(' → ')}</p>`}
+function genSameDur(){
+  let S,D,E,E2,S2;
+  for(let g=0;g<300;g++){S=R.int(13,19)*60+R.pick([20,30,40,45,50]);const Dh=R.pick([1,1,2]);const ms=[5,10,15,20,25,30,35,40,45,50,55].filter(m=>S%60+m>=60&&S%60+m!==60);if(!ms.length)continue;D=Dh*60+R.pick(ms);E=S+D;
+    E2=R.int(10,21)*60+R.pick([0,10,15,20,30,40]);S2=E2-D;if(S2<8*60||E%60===0)continue;break}
+  const wD=(Math.floor(E/60)-Math.floor(S/60))*60+E%60;const fwd=R.rand()<0.3;
+  const [d1,d2]=R.pick([['Monday','Tuesday'],['Saturday','Sunday'],['Friday','Saturday']]);
+  const ans=fwd?t12(S2+D):t12(S2);
+  const text=fwd?`On ${d1}, a movie started at <b>${t12(S)}</b> and ended at <b>${t12(E)}</b> On ${d2}, the same movie started at <b>${t12(S2)}</b> What time did it end on ${d2}?`
+    :`On ${d1}, a movie started at <b>${t12(S)}</b> and ended at <b>${t12(E)}</b> On ${d2}, the same movie was shown and it ended at <b>${t12(E2)}</b> What time did the movie start on ${d2}?`;
+  const ds=fwd?[{label:t12(S2+wD),code:'hourCross'},{label:t12(S2-D),code:'backDur'},{label:t12(S2+D+720),code:'ampm'}]:[{label:t12(E2-wD),code:'hourCross'},{label:t12(E2+D),code:'addDur'},{label:t12(S2+720),code:'ampm'}];
+  const why={
+    hourCross:`The movie is NOT ${dur(wD)} long. From ${t12(S)}, jump to ${t12(S+60-S%60)} first (${60-S%60} min), then keep going to ${t12(E)}.`,
+    addDur:`It ENDED at ${t12(E2)}, so the start is earlier. Count back.`,backDur:`It STARTED at ${t12(S2)}, so the end is later. Count forwards.`,
+    ampm:`Check a.m. and p.m.: before 12 noon is a.m., after 12 noon is p.m.`,
+    other:`Find how long the movie is first. Then count ${fwd?'forwards':'back'}.`
+  };
+  return {skill:'sameDur',text,walkVisual:`<div class="figure">${hopTxt(S,E)}<p class="readout"><b>The movie lasts ${dur(D)}</b></p>${hopTxt(S2,S2+D)}</div>`,
+    options:makeOptions(ans,ds,()=>t12((fwd?S2+D:S2)+R.pick([-30,-20,-10,10,20,30]))),answer:ans,why,
+    remedy:[
+      {title:'How long is the movie?',text:'Jump to the next whole hour first. Then hours, then minutes.',visual:`<div class="figure">${hopTxt(S,E)}</div>`,ask:makeAsk(`From ${t12(S)} to ${t12(E)} is…`,dur(D),[dur(wD),dur(D+20),dur(D-10)],`${60-S%60} min + ${dur(E-(S+60-S%60))} = ${dur(D)}.`)},
+      {title:fwd?'Count forwards':'Count back from the end',ask:makeAsk(fwd?`${t12(S2)} + ${dur(D)} = ?`:`${t12(E2)} − ${dur(D)} = ?`,ans,ds.map(d=>d.label),fwd?`Add the hours first, then the minutes.`:`Take away the hours first: ${t12(E2-Math.floor(D/60)*60)}. Then take away ${D%60} min.`)}
+    ],
+    solution:[`${d1}: ${t12(S)} → ${t12(E)} = ${dur(D)}`,fwd?`${d2}: ${t12(S2)} + ${dur(D)} = ${ans}`:`${d2}: ${t12(E2)} − ${dur(D)} = ${ans}`]};
+}
+
+// ---- smallest/largest even/odd number from digit cards (exam Q16) ----
+function genDigits(){
+  let dg,ans,all,best,par,small;
+  for(let g=0;g<300;g++){
+    dg=R.shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0,4);if(R.rand()<0.6&&!dg.includes(0))dg[R.int(0,3)]=0;
+    if(new Set(dg).size<4||!dg.some(d=>d%2)||!dg.some(d=>d%2===0))continue;
+    par=R.pick(['even','odd']);small=R.rand()<0.5;
+    const perm=a=>a.length<=1?[a]:a.flatMap((x,i)=>perm([...a.slice(0,i),...a.slice(i+1)]).map(r=>[x,...r]));
+    all=perm(dg).map(p=>p.join(''));
+    const ok=s=>s[0]!=='0'&&(+s[3])%2===(par==='even'?0:1);
+    const pickB=f=>{const c=all.filter(f).map(Number);return c.length?(small?Math.min(...c):Math.max(...c)):null};
+    ans=pickB(ok);if(ans==null)continue;
+    best={ignore:pickB(s=>s[0]!=='0'),other:pickB(s=>s[0]!=='0'&&(+s[3])%2!==(par==='even'?0:1))};
+    break}
+  const word=`${small?'smallest':'largest'} 4-digit ${par} number`;
+  const lz=dg.includes(0)&&small?'0'+dg.filter(d=>d).sort((a,b)=>a-b).join(''):null;
+  const ds=[{label:best.ignore!==ans?String(best.ignore):null,code:'ignoreParity'},{label:best.other!=null?String(best.other):null,code:'wrongParity'},{label:lz,code:'leadZero'}];
+  const pd=dg.filter(d=>(d%2===0)===(par==='even')).sort((a,b)=>a-b),od=dg.filter(d=>(d%2===0)!==(par==='even')).sort((a,b)=>a-b);
+  const last=ans%10;
+  const why={
+    ignoreParity:`${best.ignore} ends in ${best.ignore%10}, which is ${best.ignore%2?'odd':'even'}. The number must be ${par}, so it must end in ${pd.join(' or ')}.`,
+    wrongParity:`Mixed up! ${par==='even'?'Even':'Odd'} numbers end in ${par==='even'?'0, 2, 4, 6 or 8':'1, 3, 5, 7 or 9'}.`,
+    leadZero:`A number can't start with 0. ${lz} is really a 3-digit number.`,
+    other:`First choose the last digit (it must be ${par}). 0 can never go first.`
+  };
+  return {skill:'digits',brief:dg.join(', '),text:`Form the <b>${word}</b> using all of the digits below.`,
+    figure:`<div class="figure"><div class="notes">${dg.map(d=>`<span class="note big" style="font-size:24px;padding:6px 14px">${d}</span>`).join('')}</div></div>`,
+    options:makeOptions(String(ans),ds,()=>R.pick(all.filter(s=>s[0]!=='0'))),answer:String(ans),why,
+    remedy:[
+      {title:'Which digits can go last?',ask:makeAsk(`A ${par} number must end in…`,pd.join(' or '),[od.join(' or '),dg.slice().sort((a,b)=>a-b).join(' or ')],par==='even'?'Even numbers end in 0, 2, 4, 6 or 8.':'Odd numbers end in 1, 3, 5, 7 or 9.')},
+      {title:'Build the number',text:small?`For the SMALLEST: put the smallest digit you can at the front (never 0), then the next smallest. Keep a ${par} digit for the end.`:`For the LARGEST: put the biggest digits at the front. Keep a ${par} digit for the end, and use the smallest ${par} one you can.`,
+        ask:makeAsk(`The ${word} is…`,String(ans),ds.map(d=>d.label).filter(Boolean),`It ends in ${last}.`)}
+    ],
+    solution:[`It must end in ${pd.join(' or ')} (${par} digits).`,...(dg.includes(0)?['0 cannot go first.']:[]),`${small?'Smallest':'Largest'} digits at the front: ${ans}`,`Check: it ends in ${last}, so it is ${par}, and it uses ${dg.join(', ')} once each ✓`]};
+}
+
 const GEN={timeEnd:genTimeEnd,minutes:genMinutes,fraction:genFraction,money:genMoney,beforeAfter:genBeforeAfter,sets:genSets,squares:genSquares,
   longDiv:genLongDiv,place:genPlace,fracHalf:genFracHalf,fracAdd:genFracAdd,shadeMore:genShadeMore,areaHalves:genAreaHalves,
   transfer:genTransfer,watch:genWatch,groups:genGroups,remaining:genRemaining,trees:genTrees,boxes:genBoxes,ratio:genRatio,sale:genSale,rectArea:genRectArea,barGraph:genBarGraph,
-  missingNum:genMissingNum,divRem:genDivRem,doubleBar:genDoubleBar,barMoney:genBarMoney,fracRest:genFracRest,wire:genWire,fracOrder:genFracOrder,notes:genNotes};
+  missingNum:genMissingNum,divRem:genDivRem,doubleBar:genDoubleBar,barMoney:genBarMoney,fracRest:genFracRest,wire:genWire,fracOrder:genFracOrder,notes:genNotes,
+  fracCmp:genFracCmp,fracChain:genFracChain,fracBig:genFracBig,digits:genDigits,diffFind:genDiffFind,timesDiv:genTimesDiv,equalStart:genEqualStart,stackPerim:genStackPerim,sameDur:genSameDur};
 // ==GEN END==
 
 // ---------- storage ----------
@@ -1474,12 +1822,30 @@ function needsReview(k){const cut=new Date();cut.setDate(cut.getDate()-3);const 
 function weightedPick(keys,count){
   const pool=keys.slice(),out=[];
   while(out.length<count&&pool.length){
-    const w=pool.map(k=>{const st=skillStats(k);return 1+(3-st.stars)*1.5+(needsReview(k)?4:0)+(SKILLS[k].isNew&&st.n<3?5:0)+(SKILLS[k].batch===3&&st.n<3?6:0)+(SKILLS[k].batch===4&&st.n<3?9:0)});
+    const w=pool.map(k=>{const st=skillStats(k);return 1+(3-st.stars)*1.5+(needsReview(k)?4:0)+(SKILLS[k].isNew&&st.n<3?5:0)+(SKILLS[k].batch===3&&st.n<3?6:0)+(SKILLS[k].batch===4&&st.n<3?9:0)+(SKILLS[k].batch===5?(st.n<3?12:4):0)});
     let r=Math.random()*w.reduce((a,b)=>a+b,0),i=0;for(;i<pool.length;i++){r-=w[i];if(r<=0)break}
     out.push(pool.splice(Math.min(i,pool.length-1),1)[0]);
   }return out;
 }
 const DAILY_N=6;
+// Holiday fix-up plan (Days 24-37), built from the P3 final exam: half fractions, half the word-problem traps.
+const EXAM_DAYS=23;
+const HOLIDAY=[
+  ['fracBig','fracCmp','fraction','diffFind','ratio','beforeAfter'],
+  ['fracChain','fracCmp','fracBig','timesDiv','stackPerim','diffFind'],
+  ['fracChain','fracCmp','digits','equalStart','sameDur','timesDiv'],
+  ['fracBig','fracChain','fracOrder','equalStart','stackPerim','diffFind'],
+  ['fracCmp','fracChain','fracRest','sameDur','timesDiv','digits'],
+  ['fracBig','fraction','fracCmp','equalStart','diffFind','stackPerim'],
+  ['fracChain','fracCmp','fracAdd','sameDur','equalStart','timesDiv'],
+  ['fracOrder','fracChain','fracBig','digits','diffFind','ratio'],
+  ['fracCmp','fraction','fracRest','timesDiv','stackPerim','equalStart'],
+  ['fracChain','fracBig','fracHalf','sameDur','diffFind','transfer'],
+  ['fracCmp','fracChain','shadeMore','equalStart','timesDiv','digits'],
+  ['fracBig','fracOrder','fracCmp','stackPerim','sameDur','diffFind'],
+  ['fracChain','fracCmp','fracRest','equalStart','timesDiv','beforeAfter'],
+  ['fracCmp','fracChain','fracBig','diffFind','equalStart','stackPerim']
+];
 function planDaily(){
   const warm=Object.keys(SKILLS).filter(k=>SKILLS[k].warm),word=Object.keys(SKILLS).filter(k=>!SKILLS[k].warm);
   return [...weightedPick(warm,2),...weightedPick(word,DAILY_N-2)];
@@ -1503,7 +1869,7 @@ function askConfirm(title,body,okLabel,cancelLabel,onOk,danger){
   d.querySelector('#dlgNo').focus();
 }
 function render(){if(gameStop){gameStop();gameStop=null}({home:renderHome,quest:renderQuest,done:renderDone,parent:renderParent,game:renderGame})[view]();window.scrollTo(0,0)}
-const TOTAL_DAYS=23;
+const TOTAL_DAYS=EXAM_DAYS+HOLIDAY.length;
 function migrate(st){
   if(!st)return st;let k=0;
   const seen=new Set();
@@ -1517,14 +1883,14 @@ function sessLabel(s){return s.mode==='daily'?`Day ${s.day}`:s.mode==='redo'?`Da
 function dayPlan(n){
   state.dayPlans=state.dayPlans||{};
   const pl0=state.dayPlans[n];
-  if(!pl0||(n>dayInfo().done&&pl0.skills.length!==DAILY_N)){const sk=planDaily();state.dayPlans[n]={skills:sk,seeds:sk.map(()=>Math.floor(Math.random()*2147483647))};save()}
+  if(!pl0||(n>dayInfo().done&&pl0.skills.length!==DAILY_N)){const sk=n>EXAM_DAYS&&HOLIDAY[n-EXAM_DAYS-1]?HOLIDAY[n-EXAM_DAYS-1].slice():planDaily();state.dayPlans[n]={skills:sk,seeds:sk.map(()=>Math.floor(Math.random()*2147483647))};save()}
   return state.dayPlans[n];
 }
 function startDay(n){const pl=dayPlan(n);startQuest(n<=dayInfo().done?'redo':'daily',pl.skills,{day:n,seeds:pl.seeds})}
 
 function lineSVG(){
   const {done,cur}=dayInfo(),gap=66,x0=30,n=TOTAL_DAYS;const W=x0*2+gap*n;
-  let s=`<svg width="${W}" height="120" viewBox="0 0 ${W} 120" role="img" aria-label="Practice line from Day 1 to Day ${n}, then the exam. ${done} days done.">`;
+  let s=`<svg width="${W}" height="120" viewBox="0 0 ${W} 120" role="img" aria-label="Practice line from Day 1 to Day ${n}, then P4. ${done} days done.">`;
   s+=`<line x1="${x0}" y1="50" x2="${x0+gap*n}" y2="50" stroke="var(--line)" stroke-width="10" stroke-linecap="round"/>`;
   for(let i=1;i<=n;i++){
     const x=x0+gap*(i-1),isT=i===cur,dn=i<=done;
@@ -1536,7 +1902,7 @@ function lineSVG(){
     if(dn||isT)s+='</g>';
   }
   const xe=x0+gap*n;
-  s+=`<rect x="${xe-18}" y="32" width="36" height="36" rx="8" fill="var(--sun)" stroke="var(--ink)" stroke-width="3"/><text x="${xe}" y="57" text-anchor="middle" font-size="18">⭐</text><text x="${xe}" y="88" text-anchor="middle" class="st-label today">Exam</text></svg>`;
+  s+=`<rect x="${xe-18}" y="32" width="36" height="36" rx="8" fill="var(--sun)" stroke="var(--ink)" stroke-width="3"/><text x="${xe}" y="57" text-anchor="middle" font-size="18">⭐</text><text x="${xe}" y="88" text-anchor="middle" class="st-label today">P4!</text></svg>`;
   return s;
 }
 function starHTML(n){return `<span class="stars" aria-label="${n} of 3 stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(3-n)}</span></span>`}
@@ -1544,7 +1910,7 @@ function starHTML(n){return `<span class="stars" aria-label="${n} of 3 stars">${
 function renderHome(){
   const {cur,done}=dayInfo(),all=done>=TOTAL_DAYS,nd=Math.min(cur,TOTAL_DAYS);
   const lastG=done?gameFor(done):null,canPlay=done&&playsLeft(done)>0;
-  const title=all?`All ${TOTAL_DAYS} days done! You're ready for the exam`:`Day ${nd} of ${TOTAL_DAYS}`;
+  const hol=nd>EXAM_DAYS;const title=all?`All ${TOTAL_DAYS} days done! You're ready for P4`:hol?`Holiday fix-up: Day ${nd} of ${TOTAL_DAYS}`:`Day ${nd} of ${TOTAL_DAYS}`;
   const doneDays=[];for(let i=1;i<=done;i++)doneDays.push(i);
   app.innerHTML=`
   <div class="top"><div><h1 class="display">Yu En's Maths Line</h1><p class="sub">${title}. Finish a ride to unlock the next station. You can go as fast as you like!</p></div>
@@ -1552,14 +1918,14 @@ function renderHome(){
   <div class="linebox" id="linebox">${lineSVG()}</div>
   <section class="ride">
     <div>${all?`<h2>You finished all ${TOTAL_DAYS} days! 🎉</h2><p>Redo any Day below to practise again.</p>`
-      :`<h2>Day ${nd} ride</h2><p>${DAILY_N} questions, about 20 minutes. Keep your paper and pencil ready.</p>`}</div>
+      :`<h2>Day ${nd} ride</h2><p>${DAILY_N} questions, about 20 minutes. ${hol?'Fractions first, then word problems from your final exam. Draw the model before you work it out!':'Keep your paper and pencil ready.'}</p>`}</div>
     <div class="ridebtns">${all?'':`<button class="btn" id="go">Start Day ${nd}</button>`}${canPlay?`<button class="btn ${all?'':'soft'}" id="play">${GAMES[lastG.id].icon} Play Day ${done} game</button>`:''}</div>
   </section>
   ${!all?`<p class="teaser">🎁 Finish Day ${nd} to unlock: <b>${GAMES[gameFor(nd).id].icon} ${GAMES[gameFor(nd).id].name}</b></p>`:''}
   ${done?`<section class="skills"><h2>Redo a Day</h2><p class="muted" style="margin:0 0 10px">Same questions as before. Can you beat your score?</p>
     <div class="redo">${doneDays.map(i=>{const r=dayRuns(i),best=Math.max(...r.map(x=>x.first)),lastR=r[r.length-1];return `<button class="rchip" data-redo="${i}"><b>Day ${i}</b><span>${lastR?`Last ${lastR.first}/${lastR.n}`:''}${r.length>1?` · Best ${best}/${lastR.n}`:''}</span></button>`}).join('')}</div></section>`:''}
   <section class="skills"><h2>My skills</h2>
-    ${Object.keys(SKILLS).map((k,ix,arr)=>(SKILLS[k].isNew&&!SKILLS[arr[ix-1]].isNew?'<h3 class="subh">New topics from the latest papers</h3>':'')+(()=>{const s=skillStats(k);return `<div class="skill"><div><div class="nm">${SKILLS[k].name}</div><div class="nt">${s.n?`${s.n} done`:'Not tried yet'}${needsReview(k)?', practise again':''}</div></div>${starHTML(s.stars)}<button class="pill" data-skill="${k}">Practise</button></div>`})()).join('')}
+    ${Object.keys(SKILLS).map((k,ix,arr)=>(SKILLS[k].isNew&&!SKILLS[arr[ix-1]].isNew?'<h3 class="subh">New topics from the latest papers</h3>':'')+(SKILLS[k].batch===5&&SKILLS[arr[ix-1]].batch!==5?'<h3 class="subh">Fix-ups from the final exam</h3>':'')+(()=>{const s=skillStats(k);return `<div class="skill"><div><div class="nm">${SKILLS[k].name}</div><div class="nt">${s.n?`${s.n} done`:'Not tried yet'}${needsReview(k)?', practise again':''}</div></div>${starHTML(s.stars)}<button class="pill" data-skill="${k}">Practise</button></div>`})()).join('')}
   </section>`;
   const lb=document.getElementById('linebox');const idx=nd-1;if(idx>0)lb.scrollLeft=Math.max(0,30+66*idx-lb.clientWidth/2);
   const go=document.getElementById('go');if(go)go.onclick=()=>startDay(nd);

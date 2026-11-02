@@ -1,6 +1,6 @@
 # Yu En's Maths Line
 
-Daily P3 maths practice (Day 1 to Day 15) with guided help, worked solutions and reward games.
+Daily P3 maths practice (Days 1-23 before the exam, Days 24-37 holiday fix-up focused on fractions and the word-problem traps from the final paper) with guided help, worked solutions and reward games.
 
 Live site: https://benley1218.github.io/enen/ (home) · /maths/ · /chinese/
 
