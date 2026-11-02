@@ -239,6 +239,8 @@ rect.cell{cursor:pointer}
 .qbox{display:inline-grid;place-items:center;min-width:44px;height:44px;border:3px solid var(--ink);border-radius:6px;margin:0 4px}
 .balance{display:flex;align-items:center;gap:16px;font:600 26px "Fredoka",system-ui,sans-serif}.balance span{background:var(--blue-soft);border-radius:12px;padding:6px 14px}
 .notes{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.note{border:2px solid var(--line);background:var(--line-soft);border-radius:6px;padding:2px 6px;font-size:14px;font-weight:700}.note.big{border-color:var(--blue);background:var(--blue-soft)}
+.plan{border:2px dashed var(--blue);border-radius:16px;padding:12px 14px;margin:12px 0}.plan h3{margin:0 0 4px}.pq{margin:8px 0}
+.myplan{background:var(--blue-soft);border-radius:14px;padding:10px 14px;margin:10px 0}.pnotes{list-style:none;padding:0;margin:6px 0 0}.pnotes li{margin:3px 0;font-size:16px}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -317,7 +319,8 @@ const SKILLS={
   timesDiv:{name:'"3 times as heavy": find the lighter one',short:'Model drawing',warm:false,isNew:true,batch:5},
   equalStart:{name:'Equal at first, then changes',short:'Model drawing',warm:false,isNew:true,batch:5},
   stackPerim:{name:'Perimeter of squares in a row',short:'Geometry',warm:false,isNew:true,batch:5},
-  sameDur:{name:'Same movie, another day',short:'Time',warm:false,isNew:true,batch:5}
+  sameDur:{name:'Same movie, another day',short:'Time',warm:false,isNew:true,batch:5},
+  angles:{name:'Angles smaller than a right angle',short:'Geometry',warm:true,isNew:true,batch:5}
 };
 const MISTAKES={
   noCarry:'Did not carry 60 minutes into 1 hour',
@@ -376,7 +379,7 @@ const MISTAKES={
   insideLines:'Perimeter: counted the lines inside',allSquares:'Perimeter: added every square\'s perimeter',onlyLong:'Perimeter: left out the short ends',
   hourCross:'Time: wrong duration across the hour',backDur:'Time: counted back instead of forwards',
   ignoreParity:'Even/odd: forgot the number must be even/odd',wrongParity:'Even/odd: mixed up even and odd',leadZero:'Put 0 in front (not a 4-digit number)',
-  chainAdd:'Fractions: added instead of multiplying',chainCopy:'Fractions: copied the simple fraction',offByOne:'Fractions: multiplied by the wrong number',
+  angRight:'Angles: counted right angles as smaller',angMiss:'Angles: missed a shape',angExtra:'Angles: picked a shape that does not fit',chainAdd:'Fractions: added instead of multiplying',chainCopy:'Fractions: copied the simple fraction',offByOne:'Fractions: multiplied by the wrong number',
   other:'Other slip'
 };
 
@@ -683,6 +686,7 @@ const TIPS={
   equalStart:'Equal at first = two bars the same length. The gap in the end = what one lost + what the other got. Count the units in the gap.',
   stackPerim:'Perimeter = only the OUTSIDE edge. Trace it with your finger. Lines inside the figure don\'t count.',
   sameDur:'Find how long it lasts first: jump to the next whole hour, then hours, then minutes. Then count back from the end (or forwards from the start).',
+  angles:'A right angle is a square corner. Hold your paper corner on each angle: if it hides inside, it is smaller. Square corners do NOT count.',
   notes:'Pretend all notes are the smaller note. Find how much short. Each swap adds the difference between the notes. Short ÷ difference = number of bigger notes.'
 };
 // ==== NEW TOPICS (from the second set of papers) ====
@@ -1448,6 +1452,7 @@ function genFracOrder(){
 
 // ==== FIX-UPS FROM THE P3 FINAL EXAM (batch 5) ====
 function lcm(a,b){return a/gcd(a,b)*b}
+function plan1(q,correct,wrongs,hint,note){const a=makeAsk(q,correct,wrongs,hint);a.note=note;return a}
 const FR12=(()=>{const o=[];for(let b=2;b<=12;b++)for(let a=1;a<b;a++)if(gcd(a,b)===1)o.push([a,b]);return o})();
 const fsx=f=>f[0]+'/'+f[1];
 function fracBars(list,note){return `<div class="figure">${list.map(f=>`<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><b style="min-width:${note?96:44}px;text-align:right;white-space:nowrap">${fsx(f)}${note?` = ${note(f)}`:''}</b>${fbarSVG(f[0],f[1],false).replace('width="320"','width="100%" style="max-width:320px;min-width:0;flex:1"')}</div>`).join('')}</div>`}
@@ -1490,6 +1495,8 @@ function genFracCmp(){
     figure:`<div class="figure fracrow">${shown.map(f=>frac(f[0],f[1])).join('<span class="sep">,</span>')}</div>`,
     walkVisual:fracBars(order,conv)+`<p class="muted" style="font-size:15px;margin:4px 0">Same bottom (${L}), so the bigger top is the bigger fraction.</p>`,
     options:makeOptions(ans,dsList,()=>R.pick(perms)),answer:ans,why,
+    plan:[plan1('Fractions with different bottoms. What do we do first?','Make all the bottoms the same',['Compare the bottom numbers','Compare the top numbers'],'We can only compare the tops when the bottoms are the same.','Make all the bottoms the same.'),
+      plan1(`Which number can ${bs.join(', ')} all go into?`,String(L),wrongL,`Count in ${Math.max(...bs)}s until ${bs.join(', ')} all go in.`,`${bs.join(', ')} all go into ${L}. Change each fraction into ${L}ths, then compare the tops.`)],
     remedy:[
       {title:'Find one bottom number for all',text:`Count up in ${Math.max(...bs)}s until all the bottoms (${bs.join(', ')}) go into it.`,
         ask:makeAsk(`Which number can ${bs.join(', ')} all go into?`,String(L),wrongL,`Count in ${Math.max(...bs)}s: ${[1,2,3].map(i=>Math.max(...bs)*i).join(', ')}... ${L} works for ${bs.join(', ')}.`)},
@@ -1518,6 +1525,8 @@ function genFracChain(){
     figure:`<div class="figure"><span class="fr"><span class="frac">${box}<i></i><span>${A}</span></span> = <span class="frac"><span>${B}</span><i></i>${box}</span> = ${frac(p,q)}</span></div>`,
     walkVisual:`<div class="figure fracrow">${frac(p,q)}<span class="sep">× ${k1} →</span>${frac(x,A)}</div><div class="figure fracrow">${frac(p,q)}<span class="sep">× ${k2} →</span>${frac(B,y)}</div>`,
     options:makeOptions(ans,ds,()=>`${x+R.pick([-2,-1,1,2])} and ${y+R.pick([-q,0,q])}`),answer:ans,why,
+    plan:[plan1('Which fraction do we link BOTH boxes to?',`${p}/${q}`,['The fraction right next to each box','Whichever has the biggest numbers'],`Link to the fraction where we know BOTH numbers: ${p}/${q}.`,`Link both boxes to ${p}/${q}.`),
+      plan1(`First box: to get from ${q} to ${A} on the bottom, we multiply by…`,String(k1),[String(k1+1),String(A-q)],`Count in ${q}s up to ${A}.`,`${q} × ${k1} = ${A}, so multiply the top ${p} by ${k1} too. Do the second box the same way.`)],
     remedy:[
       {title:'Start from the one you know',ask:makeAsk('Which fraction has BOTH numbers?',`${p}/${q}`,[`?/${A}`,`${B}/?`],`Every box links to ${p}/${q}, not to its neighbour.`)},
       {title:'First box: what did we multiply by?',ask:makeAsk(`${q} × ? = ${A}`,String(k1),[String(k1+1),String(A-q),String(k2)],`Count in ${q}s up to ${A}.`)},
@@ -1531,7 +1540,7 @@ function genFracChain(){
 // ---- pick the greatest / smallest fraction ----
 function genFracBig(){
   const great=R.rand()<0.6,word=great?'greatest':'smallest';
-  let list,ans,ds,remedy,sol,wv;
+  let list,ans,ds,remedy,sol,wv,pl;
   if(R.rand()<0.4){
     const n=R.pick([1,1,2,3]);const bs=R.shuffle(Array.from({length:12-n},(_,i)=>i+n+1)).slice(0,4).sort((a,b)=>a-b);
     list=bs.map(b=>[n,b]);const win=great?list[0]:list[3],lose=great?list[3]:list[0];ans=fsx(win);
@@ -1539,6 +1548,7 @@ function genFracBig(){
     wv=fracBars(list);
     remedy=[{title:'Same tops',visual:wv,ask:makeAsk(`All the tops are ${n}. Cutting a cake into MORE pieces makes each piece…`,'Smaller',['Bigger','The same size'],'More people sharing one cake means less for each person.')},
       {title:'Pick it',ask:makeAsk(`Which is the ${word}?`,ans,list.map(fsx),great?`Fewest pieces = biggest pieces: ${fsx(win)}.`:`Most pieces = smallest pieces: ${fsx(win)}.`)}];
+    pl=[plan1(`All the tops are ${n}. A bigger bottom number means each piece is…`,'Smaller',['Bigger','The same size'],'Cut a cake into more pieces and each piece gets smaller.','Bigger bottom = smaller pieces.')];
     sol=[`All the tops are ${n}, so look at the bottoms.`,`The bigger the bottom, the smaller each piece.`,`The ${word} is ${ans}.`];
   }else{
     let L;
@@ -1551,13 +1561,14 @@ function genFracBig(){
     wv=fracBars(list,conv);
     remedy=[{title:'Make the bottoms the same',ask:makeAsk(`All these bottoms (${list.map(f=>f[1]).join(', ')}) go into…`,String(L),[String(L*2),String(Math.max(...list.map(f=>f[1]))===L?L+2:Math.max(...list.map(f=>f[1]))),String(list.reduce((s,f)=>s+f[1],0))],`Count in ${Math.max(...list.map(f=>f[1]))}s.`)},
       {title:'Compare the tops',visual:`<div class="figure">${list.map(f=>`<p class="readout">${fsx(f)} = <b>${conv(f)}</b></p>`).join('')}</div>`,ask:makeAsk(`Which is the ${word}?`,ans,list.map(fsx),`Same bottoms now: the ${great?'biggest':'smallest'} top wins.`)}];
+    pl=[plan1('The bottoms are different. What do we do first?','Make the bottoms the same',['Pick the biggest top number','Pick the biggest bottom number'],'Different bottoms means different-sized pieces. Make them the same first.',`Make all the bottoms ${L}, then compare the tops.`)];
     sol=[`Make the bottoms ${L}: ${list.map(f=>`${fsx(f)} = ${conv(f)}`).join(', ')}`,`The ${word} is ${ans}.`];
   }
   return {skill:'fracBig',brief:list.map(fsx).join(', '),text:`Which fraction is the <b>${word}</b>?`,
     figure:`<div class="figure fracrow">${list.map(f=>frac(f[0],f[1])).join('<span class="sep">,</span>')}</div>`,walkVisual:wv,
     options:makeOptions(ans,ds,()=>R.pick(list.map(fsx))),answer:ans,
     why:{bigNums:`Bigger numbers don't mean a bigger fraction. A bigger bottom means the whole is cut into MORE, SMALLER pieces.`,byTop:`We can't compare the tops when the bottoms are different. Make the bottoms the same first.`,other:`Make the bottoms the same, then compare the tops.`},
-    remedy,solution:sol};
+    plan:pl,remedy,solution:sol};
 }
 
 // ---- "difference" / "more than": add or take away? (exam Q20, Q25b) ----
@@ -1591,6 +1602,8 @@ function genDiffFind(){
   const vis=diffSVG(bigL,askBig?'?':bigV,smL,askBig?smV:'?',d);
   return {skill:'diffFind',text,walkVisual:vis,
     options:makeOptions(ans+unit,[{label:wrong>0?wrong+unit:null,code:'wrongOpD'}],()=>Math.max(1,ans+R.pick([-100,100,-10,10,-1000,1000]))+unit),answer:ans+unit,why,
+    plan:[plan1('Which one is bigger?',bigL,[smL],smL==='Smaller'?'The question tells us which is greater.':'"More" goes with the one who has more. "Fewer" goes with the one who has less.',`${bigL} is the longer bar. ${smL} is the shorter bar.`),
+      plan1(`We want the ${askBig?'LONGER':'SHORTER'} bar. So we…`,askBig?'Add the difference':'Take away the difference',[askBig?'Take away the difference':'Add the difference'],askBig?'Longer bar = shorter bar + difference.':'Shorter bar = longer bar − difference.',`${askBig?'Add':'Take away'} ${d}. Check: the bigger one must come out bigger!`)],
     remedy:[
       {title:'Who is bigger?',ask:makeAsk('Which one is bigger?',bigL,[smL],smL==='Smaller'?'The question tells us which is greater.':`"More" goes with the one who has more. "Fewer" goes with the one who has less.`)},
       {title:'Draw the model',visual:vis,ask:makeAsk(`We want the ${askBig?'LONGER':'SHORTER'} bar. So we…`,askBig?`Add ${d}`:`Take away ${d}`,[askBig?`Take away ${d}`:`Add ${d}`],askBig?`Longer bar = shorter bar + the difference.`:`Shorter bar = longer bar − the difference.`)},
@@ -1625,6 +1638,8 @@ function genTimesDiv(){
     text:`The total mass of <b>${N} similar ${c[1]}</b> is <b>${T} kg</b>. The mass of each ${c[0]} is <b>${k} times</b> the mass of a ${c[2]}. ${many?`What is the total mass of <b>${M} ${c[3]}</b>?`:`What is the mass of <b>one ${c[2]}</b>?`}`,
     walkVisual:unitsSVG('1 '+c[0],k,b+' kg','1 '+c[2],m+' kg'),
     options:makeOptions(ans+u,ds,()=>(ans+R.pick([-2,-1,1,2,3]))+u),answer:ans+u,why,
+    plan:[plan1('Which one is heavier?',`1 ${c[0]}`,[`1 ${c[2]}`],`"${k} times the mass of a ${c[2]}" means the ${c[0]} is ${k} times as heavy.`,`1 ${c[0]} = ${k} units. 1 ${c[2]} = 1 unit.`),
+      plan1('What do we find first?',`The mass of ONE ${c[0]}`,[`${N} × ${k}`,`The mass of ONE ${c[2]}`],`We know ${N} ${c[1]} together. Share to find just one.`,`Find 1 ${c[0]} first (${T} ÷ ${N}), then divide by ${k}.`)],
     remedy:[
       {title:`One ${c[0]} first`,ask:makeAsk(`${N} ${c[1]} = ${T} kg. 1 ${c[0]} = ?`,b+u,[T*N+u,(T-N)+u,N*k+u],`Share ${T} kg into ${N} equal parts: ${T} ÷ ${N}.`)},
       {title:'Draw the units',visual:unitsSVG('1 '+c[0],k,b+' kg','1 '+c[2],'?'),ask:makeAsk(`${k} units = ${b} kg. 1 unit (1 ${c[2]}) = ?`,m+u,[b*k+u,(b-k)+u,(b+k)+u],`The ${c[0]} is ${k} units. Share ${b} kg into ${k}: ${b} ÷ ${k}.`)},
@@ -1666,6 +1681,9 @@ function genEqualStart(){
     text:`${a[0]} and ${b[0]} had an <b>equal number</b> of ${it} at first. Then, ${a[0]} ${act[0]} and ${b[0]} ${act[1]}. In the end, ${b[0]} had <b>${k} times</b> as many ${it} as ${a[0]}. ${q}`,
     walkVisual:eqSVG(a[0],b[0],x,y,k,u,true),
     options:makeOptions(String(ans),ds,()=>String(ans+R.pick([-6,-3,3,6,9]))),answer:String(ans),why,
+    plan:[plan1('At first, the two bars are…','The same length',['Different lengths'],'"Equal number at first" means they had the same.','Same length at first.'),
+      plan1('In the end, the gap between them is…',`${x} + ${y}`,[`${Math.max(x,y)} − ${Math.min(x,y)}`,`${x} × ${k}`],`One went DOWN by ${x} and the other went UP by ${y}. The gap grows by both.`,`Gap in the end = ${x} + ${y}.`),
+      plan1(`In the end, ${b[0]} = ${k} units and ${a[0]} = 1 unit. The gap is…`,`${k-1} units`,[`${k} units`,'1 unit'],`${k} − 1 = ${k-1}`,`The gap is ${k-1} units. So ${k-1} units = ${x} + ${y}.`)],
     remedy:[
       {title:'Same at first',text:`Draw two bars, the same length. ${a[0]} loses ${x}. ${b[0]} gets ${y} more.`,ask:makeAsk(`In the end, how many more ${it} does ${b[0]} have than ${a[0]}?`,String(x+y),[String(Math.abs(y-x)),String(y),String(x*k)],`${a[0]} went down by ${x} and ${b[0]} went up by ${y}. The gap grows by both: ${x} + ${y}.`)},
       {title:'Units in the end',visual:eqSVG(a[0],b[0],x,y,k,u,false),ask:makeAsk(`${a[0]} = 1 unit. ${b[0]} = ${k} units. The gap is how many units?`,`${k-1} units`,[`${k} units`,`${k+1} units`,'1 unit'],`${k} − 1 = ${k-1}`)},
@@ -1693,12 +1711,14 @@ function genStackPerim(){
     return {skill:'stackPerim',text:base+'Find the <b>total area</b> of the figure.',figure:fig,walkVisual:stackFig(n,s,vert,false),
       options:makeOptions(ans+' cm²',[{label:s*s+' cm²',code:'oneSquare'},{label:sides*s+' cm²',code:'perimeter'},{label:(n*s)*(n*s)+' cm²',code:'bigSquare'}],()=>(ans+R.pick([-s,s,2*s]))+' cm²'),answer:ans+' cm²',
       why:{oneSquare:`That is ONE square. There are ${n}.`,perimeter:`That is the distance around (perimeter). Area is the space inside.`,bigSquare:`${n*s} × ${n*s} would be one giant square. The figure is ${n} small squares.`,other:`Area of 1 square = ${s} × ${s}. Then × ${n}.`},
+      plan:[plan1('Area means…','The space inside',['The distance around the outside','The number of lines'],'Area is the space inside. Perimeter is the edge.','Area = the space inside. Find 1 square, then all of them.')],
       remedy:[{title:'One square',ask:makeAsk(`Area of 1 square = ${s} cm × ${s} cm = ?`,s*s+' cm²',[2*s+' cm²',4*s+' cm²',(s+s)+' cm²'],`Area = side × side.`)},{title:`All ${n} squares`,ask:makeAsk(`${n} × ${s*s} = ?`,ans+' cm²',[s*s+' cm²',sides*s+' cm²',(ans+s)+' cm²'],`${n} identical squares.`)}],
       solution:[`Area of 1 square = ${s} × ${s} = ${s*s} cm²`,`Total area = ${n} × ${s*s} = ${ans} cm²`]};}
   const ans=sides*s;
   return {skill:'stackPerim',text:base+'Find the <b>perimeter</b> of the figure.',figure:fig,walkVisual:stackFig(n,s,vert,true),
     options:makeOptions(ans+' cm',[{label:(3*n+1)*s+' cm',code:'insideLines'},{label:4*n*s+' cm',code:'allSquares'},{label:2*n*s+' cm',code:'onlyLong'}],()=>(ans+R.pick([-s,s,2*s,-2*s]))+' cm'),answer:ans+' cm',
     why:{insideLines:`You counted the lines INSIDE the figure too. Perimeter is only the outside edge, like walking around a fence.`,allSquares:`Adding every square's perimeter counts the lines where the squares touch. Those are inside, not on the edge.`,onlyLong:`You counted the two long sides. Don't forget the ${s} cm at each short end.`,other:`Trace the outside edge with your finger and count the ${s} cm sides.`},
+    plan:[plan1('Perimeter means…','Only the outside edge',['Every line in the figure','The space inside'],'Walk around the outside, like a fence. Lines inside the figure do not count.','Perimeter = only the outside edge. Trace it with your finger.')],
     remedy:[
       {title:'Trace the outside',text:'The thick red line is the perimeter. The dashed lines inside are NOT part of it.',visual:stackFig(n,s,vert,true),ask:makeAsk(`How many ${s} cm sides are on the red line?`,String(sides),[String(3*n+1),String(4*n),String(2*n)],`${n} on one long side, ${n} on the other, and 1 at each end: ${n} + ${n} + 1 + 1.`)},
       {title:'Work it out',ask:makeAsk(`${sides} × ${s} cm = ?`,ans+' cm',[(3*n+1)*s+' cm',4*n*s+' cm',(ans+s)+' cm'],`Or add the long sides and the short ends: ${n*s} + ${s} + ${n*s} + ${s}.`)}
@@ -1726,6 +1746,8 @@ function genSameDur(){
   };
   return {skill:'sameDur',text,walkVisual:`<div class="figure">${hopTxt(S,E)}<p class="readout"><b>The movie lasts ${dur(D)}</b></p>${hopTxt(S2,S2+D)}</div>`,
     options:makeOptions(ans,ds,()=>t12((fwd?S2+D:S2)+R.pick([-30,-20,-10,10,20,30]))),answer:ans,why,
+    plan:[plan1('What do we find first?','How long the movie lasts',[`The time on ${d2}`,'Add the two times'],'The movie is the same, so it lasts the same time on both days.',`Find how long it lasts: ${t12(S)} to ${t12(E)}.`),
+      plan1(`From ${t12(S)}, jump to the next whole hour. That is…`,t12(S+60-S%60),[t12(S+60),t12(E)],`The next o'clock after ${t12(S)}.`,`${t12(S)} → ${t12(S+60-S%60)} is ${60-S%60} min. Then hours, then minutes.`)],
     remedy:[
       {title:'How long is the movie?',text:'Jump to the next whole hour first. Then hours, then minutes.',visual:`<div class="figure">${hopTxt(S,E)}</div>`,ask:makeAsk(`From ${t12(S)} to ${t12(E)} is…`,dur(D),[dur(wD),dur(D+20),dur(D-10)],`${60-S%60} min + ${dur(E-(S+60-S%60))} = ${dur(D)}.`)},
       {title:fwd?'Count forwards':'Count back from the end',ask:makeAsk(fwd?`${t12(S2)} + ${dur(D)} = ?`:`${t12(E2)} − ${dur(D)} = ?`,ans,ds.map(d=>d.label),fwd?`Add the hours first, then the minutes.`:`Take away the hours first: ${t12(E2-Math.floor(D/60)*60)}. Then take away ${D%60} min.`)}
@@ -1761,6 +1783,7 @@ function genDigits(){
   return {skill:'digits',brief:dg.join(', '),text:`Form the <b>${word}</b> using all of the digits below.`,
     figure:`<div class="figure"><div class="notes">${dg.map(d=>`<span class="note big" style="font-size:24px;padding:6px 14px">${d}</span>`).join('')}</div></div>`,
     options:makeOptions(String(ans),ds,()=>R.pick(all.filter(s=>s[0]!=='0'))),answer:String(ans),why,
+    plan:[plan1(`A ${par} number must end in…`,pd.join(' or '),[od.join(' or ')],par==='even'?'Even numbers end in 0, 2, 4, 6 or 8.':'Odd numbers end in 1, 3, 5, 7 or 9.',`It must end in ${pd.join(' or ')}.`),...(dg.includes(0)?[plan1('Can 0 be the first digit?','No',['Yes'],'0 at the front makes it a 3-digit number.','0 can never go first.')]:[])],
     remedy:[
       {title:'Which digits can go last?',ask:makeAsk(`A ${par} number must end in…`,pd.join(' or '),[od.join(' or '),dg.slice().sort((a,b)=>a-b).join(' or ')],par==='even'?'Even numbers end in 0, 2, 4, 6 or 8.':'Odd numbers end in 1, 3, 5, 7 or 9.')},
       {title:'Build the number',text:small?`For the SMALLEST: put the smallest digit you can at the front (never 0), then the next smallest. Keep a ${par} digit for the end.`:`For the LARGEST: put the biggest digits at the front. Keep a ${par} digit for the end, and use the smallest ${par} one you can.`,
@@ -1769,11 +1792,56 @@ function genDigits(){
     solution:[`It must end in ${pd.join(' or ')} (${par} digits).`,...(dg.includes(0)?['0 cannot go first.']:[]),`${small?'Smallest':'Largest'} digits at the front: ${ans}`,`Check: it ends in ${last}, so it is ${par}, and it uses ${dg.join(', ')} once each ✓`]};
 }
 
+// ---- angles smaller than a right angle (exam Q6) ----
+const SHAPES={
+  rect:[[10,15],[100,15],[100,65],[10,65]],square:[[25,10],[85,10],[85,70],[25,70]],para:[[30,15],[100,15],[80,65],[10,65]],
+  isoTrap:[[32,15],[78,15],[100,65],[10,65]],rightTrap:[[10,15],[70,15],[100,65],[10,65]],acuteTri:[[55,8],[100,70],[12,70]],
+  rightTri:[[15,10],[15,70],[100,70]],obtuseTri:[[35,32],[100,70],[5,70]],pent:[[55,6],[98,37],[82,74],[28,74],[12,37]],rhombus:[[55,6],[100,40],[55,74],[10,40]]};
+function angList(P){return P.map((v,i)=>{const a=P[(i+P.length-1)%P.length],b=P[(i+1)%P.length];const u=[a[0]-v[0],a[1]-v[1]],w=[b[0]-v[0],b[1]-v[1]];return Math.round(Math.acos((u[0]*w[0]+u[1]*w[1])/Math.hypot(...u)/Math.hypot(...w))*180/Math.PI)})}
+function shapeSVG(P,lab,show){
+  const ang=angList(P);let s=`<g>`;s+=`<polygon points="${P.map(p=>p.join(',')).join(' ')}" fill="none" stroke="currentColor" stroke-width="2.5"/>`;
+  P.forEach((v,i)=>{const a=P[(i+P.length-1)%P.length],b=P[(i+1)%P.length],r=11;const u=[a[0]-v[0],a[1]-v[1]],w=[b[0]-v[0],b[1]-v[1]];const lu=Math.hypot(...u),lw=Math.hypot(...w);
+    const p1=[v[0]+u[0]/lu*r,v[1]+u[1]/lu*r],p2=[v[0]+w[0]/lw*r,v[1]+w[1]/lw*r];const cr=u[0]*w[1]-u[1]*w[0];
+    const col=!show?'currentColor':ang[i]<90?'var(--coral)':ang[i]===90?'var(--blue)':'var(--muted)';
+    if(show&&ang[i]===90){const q=[v[0]+(u[0]/lu+w[0]/lw)*8,v[1]+(u[1]/lu+w[1]/lw)*8];s+=`<path d="M${(v[0]+u[0]/lu*8).toFixed(1)} ${(v[1]+u[1]/lu*8).toFixed(1)} L${q[0].toFixed(1)} ${q[1].toFixed(1)} L${(v[0]+w[0]/lw*8).toFixed(1)} ${(v[1]+w[1]/lw*8).toFixed(1)}" fill="none" stroke="${col}" stroke-width="2"/>`}
+    else s+=`<path d="M${p1[0].toFixed(1)} ${p1[1].toFixed(1)} A${r} ${r} 0 0 ${cr>0?1:0} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}" fill="none" stroke="${col}" stroke-width="${show&&ang[i]<90?3:1.6}"/>`});
+  s+=`<text x="55" y="98" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">${lab}</text>`;
+  if(show){const n=ang.filter(a=>a<90).length;s+=`<text x="55" y="118" text-anchor="middle" font-size="13" fill="var(--coral)" font-weight="700">${n} smaller</text>`}
+  return s+'</g>';
+}
+function shapesRow(keys,show){const H=show?124:104;return `<svg viewBox="0 0 232 ${H*2}" width="100%" style="max-width:340px" role="img" aria-label="Figures ${keys.map((_,i)=>'ABCD'[i]).join(', ')} with marked angles">${keys.map((k,i)=>`<g transform="translate(${(i%2)*115+2},${Math.floor(i/2)*H})">${shapeSVG(SHAPES[k],'ABCD'[i],show)}</g>`).join('')}</svg>`}
+const letters=a=>a.length===0?'None of them':a.length===1?`${a[0]} only`:a.slice(0,-1).join(', ')+' and '+a[a.length-1]+(a.length===2?' only':'');
+function genAngles(){
+  let keys,cnt,cntR,mode,want,ans,ansSet;
+  for(let g=0;g<400;g++){
+    keys=R.shuffle(Object.keys(SHAPES)).slice(0,4);cnt=keys.map(k=>angList(SHAPES[k]).filter(a=>a<90).length);cntR=keys.map(k=>angList(SHAPES[k]).filter(a=>a<=90).length);
+    mode=R.pick(['ge2','ge2','ge2','eq1','none']);want=c=>mode==='ge2'?c>=2:mode==='eq1'?c===1:c===0;
+    ansSet='ABCD'.split('').filter((_,i)=>want(cnt[i]));if(ansSet.length<1||ansSet.length>3)continue;
+    const rs='ABCD'.split('').filter((_,i)=>want(cntR[i]));if(letters(rs)===letters(ansSet))continue;break}
+  ans=letters(ansSet);
+  const rs=letters('ABCD'.split('').filter((_,i)=>want(cntR[i])));
+  const miss=ansSet.length>=2?letters(ansSet.slice(1)):null;
+  const extra=letters('ABCD'.split('').filter((L,i)=>ansSet.includes(L)||i===cnt.findIndex((c,j)=>!ansSet.includes('ABCD'[j]))).sort());
+  const qs=mode==='ge2'?'have <b>2 or more</b> marked angles which are smaller than a right angle':mode==='eq1'?'have <b>exactly 1</b> marked angle smaller than a right angle':'have <b>no</b> marked angles smaller than a right angle';
+  const why={angRight:'A right angle is NOT smaller than a right angle. Square corners (like a rectangle\'s) don\'t count.',angMiss:'Check every shape. Hold the corner of your paper on each marked angle.',angExtra:'One of those shapes doesn\'t fit. Count its sharp corners again with the paper corner.',other:'Test each marked angle with the corner of your paper: does it fit inside the corner?'};
+  const tricky=keys.findIndex(k=>{const a=angList(SHAPES[k]);return a.some(x=>x<90)&&a.some(x=>x>90)});const tk=tricky<0?0:tricky;
+  return {skill:'angles',brief:keys.join(', '),text:`Which of the following figures ${qs}?`,figure:`<div class="figure">${shapesRow(keys,false)}</div>`,walkVisual:shapesRow(keys,true)+`<p class="muted" style="font-size:14px;margin:4px 0">Red: smaller than a right angle. Blue square: a right angle. Grey: bigger.</p>`,
+    options:makeOptions(ans,[{label:rs,code:'angRight'},{label:miss,code:'angMiss'},{label:extra!==ans?extra:null,code:'angExtra'}],()=>letters(R.shuffle(['A','B','C','D']).slice(0,R.int(1,3)).sort())),answer:ans,why,
+    plan:[plan1('Which corner is exactly a right angle?','The corner of a square',['A sharp, pointy corner','A wide, open corner'],'A right angle is a square corner, like the corner of your paper.','Right angle = square corner. Smaller = sharper than the paper corner.'),
+      plan1('Is a rectangle\'s corner smaller than a right angle?','No, it IS a right angle',['Yes'],'A rectangle has 4 square corners. They are right angles, not smaller.','Square corners do NOT count.')],
+    remedy:[
+      {title:'Use your paper corner',text:'Put the corner of your paper on each marked angle. If the angle hides inside the corner, it is smaller than a right angle.',visual:shapesRow(keys,false),
+       ask:makeAsk(`How many marked angles in ${'ABCD'[tk]} are smaller than a right angle?`,String(cnt[tk]),[String(cntR[tk]+(cntR[tk]===cnt[tk]?1:0)),String(angList(SHAPES[keys[tk]]).length),'0'].filter(v=>v!==String(cnt[tk])),'Only the sharp corners count.')},
+      {title:'Check every shape',visual:shapesRow(keys,true),ask:makeAsk(`So which figures ${qs.replace(/<\/?b>/g,'')}?`,ans,[rs,miss,extra].filter(Boolean),'Read the red counts under each shape.')}
+    ],
+    solution:keys.map((k,i)=>`${'ABCD'[i]}: ${cnt[i]} angle${cnt[i]===1?'':'s'} smaller than a right angle`).concat([`Answer: ${ans}`])};
+}
+
 const GEN={timeEnd:genTimeEnd,minutes:genMinutes,fraction:genFraction,money:genMoney,beforeAfter:genBeforeAfter,sets:genSets,squares:genSquares,
   longDiv:genLongDiv,place:genPlace,fracHalf:genFracHalf,fracAdd:genFracAdd,shadeMore:genShadeMore,areaHalves:genAreaHalves,
   transfer:genTransfer,watch:genWatch,groups:genGroups,remaining:genRemaining,trees:genTrees,boxes:genBoxes,ratio:genRatio,sale:genSale,rectArea:genRectArea,barGraph:genBarGraph,
   missingNum:genMissingNum,divRem:genDivRem,doubleBar:genDoubleBar,barMoney:genBarMoney,fracRest:genFracRest,wire:genWire,fracOrder:genFracOrder,notes:genNotes,
-  fracCmp:genFracCmp,fracChain:genFracChain,fracBig:genFracBig,digits:genDigits,diffFind:genDiffFind,timesDiv:genTimesDiv,equalStart:genEqualStart,stackPerim:genStackPerim,sameDur:genSameDur};
+  fracCmp:genFracCmp,fracChain:genFracChain,fracBig:genFracBig,digits:genDigits,diffFind:genDiffFind,timesDiv:genTimesDiv,equalStart:genEqualStart,stackPerim:genStackPerim,sameDur:genSameDur,angles:genAngles};
 // ==GEN END==
 
 // ---------- storage ----------
@@ -1827,24 +1895,24 @@ function weightedPick(keys,count){
     out.push(pool.splice(Math.min(i,pool.length-1),1)[0]);
   }return out;
 }
-const DAILY_N=6;
+const DAILY_N=8;
 // Holiday fix-up plan (Days 24-37), built from the P3 final exam: half fractions, half the word-problem traps.
 const EXAM_DAYS=23;
 const HOLIDAY=[
-  ['fracBig','fracCmp','fraction','diffFind','ratio','beforeAfter'],
-  ['fracChain','fracCmp','fracBig','timesDiv','stackPerim','diffFind'],
-  ['fracChain','fracCmp','digits','equalStart','sameDur','timesDiv'],
-  ['fracBig','fracChain','fracOrder','equalStart','stackPerim','diffFind'],
-  ['fracCmp','fracChain','fracRest','sameDur','timesDiv','digits'],
-  ['fracBig','fraction','fracCmp','equalStart','diffFind','stackPerim'],
-  ['fracChain','fracCmp','fracAdd','sameDur','equalStart','timesDiv'],
-  ['fracOrder','fracChain','fracBig','digits','diffFind','ratio'],
-  ['fracCmp','fraction','fracRest','timesDiv','stackPerim','equalStart'],
-  ['fracChain','fracBig','fracHalf','sameDur','diffFind','transfer'],
-  ['fracCmp','fracChain','shadeMore','equalStart','timesDiv','digits'],
-  ['fracBig','fracOrder','fracCmp','stackPerim','sameDur','diffFind'],
-  ['fracChain','fracCmp','fracRest','equalStart','timesDiv','beforeAfter'],
-  ['fracCmp','fracChain','fracBig','diffFind','equalStart','stackPerim']
+  ['fracBig','fracCmp','fraction','fracOrder','diffFind','timesDiv','beforeAfter','ratio'],
+  ['fracChain','fracCmp','fracBig','digits','timesDiv','equalStart','stackPerim','diffFind'],
+  ['fracChain','fracCmp','fracOrder','angles','equalStart','sameDur','timesDiv','stackPerim'],
+  ['fracBig','fracChain','fracHalf','minutes','diffFind','equalStart','timesDiv','fracRest'],
+  ['fracCmp','fracChain','fraction','digits','sameDur','stackPerim','equalStart','transfer'],
+  ['fracBig','fracCmp','fracAdd','angles','timesDiv','diffFind','sameDur','fracRest'],
+  ['fracChain','fracCmp','shadeMore','timeEnd','equalStart','stackPerim','timesDiv','diffFind'],
+  ['fracOrder','fracChain','fracBig','digits','sameDur','equalStart','ratio','timesDiv'],
+  ['fracCmp','fracChain','fraction','angles','diffFind','timesDiv','stackPerim','fracRest'],
+  ['fracBig','fracCmp','fracHalf','minutes','equalStart','sameDur','beforeAfter','timesDiv'],
+  ['fracChain','fracCmp','fracAdd','digits','timesDiv','diffFind','equalStart','stackPerim'],
+  ['fracCmp','fracBig','fracChain','angles','sameDur','equalStart','transfer','fracRest'],
+  ['fracChain','fracCmp','fracOrder','watch','timesDiv','diffFind','stackPerim','equalStart'],
+  ['fracCmp','fracChain','fracBig','angles','equalStart','timesDiv','sameDur','diffFind']
 ];
 function planDaily(){
   const warm=Object.keys(SKILLS).filter(k=>SKILLS[k].warm),word=Object.keys(SKILLS).filter(k=>!SKILLS[k].warm);
@@ -1918,7 +1986,7 @@ function renderHome(){
   <div class="linebox" id="linebox">${lineSVG()}</div>
   <section class="ride">
     <div>${all?`<h2>You finished all ${TOTAL_DAYS} days! 🎉</h2><p>Redo any Day below to practise again.</p>`
-      :`<h2>Day ${nd} ride</h2><p>${DAILY_N} questions, about 20 minutes. ${hol?'Fractions first, then word problems from your final exam. Draw the model before you work it out!':'Keep your paper and pencil ready.'}</p>`}</div>
+      :`<h2>Day ${nd} ride</h2><p>${DAILY_N} questions, about ${hol?'25-30':'20'} minutes. ${hol?'Fractions first, then word problems from your final exam. Draw the model before you work it out!':'Keep your paper and pencil ready.'}</p>`}</div>
     <div class="ridebtns">${all?'':`<button class="btn" id="go">Start Day ${nd}</button>`}${canPlay?`<button class="btn ${all?'':'soft'}" id="play">${GAMES[lastG.id].icon} Play Day ${done} game</button>`:''}</div>
   </section>
   ${!all?`<p class="teaser">🎁 Finish Day ${nd} to unlock: <b>${GAMES[gameFor(nd).id].icon} ${GAMES[gameFor(nd).id].name}</b></p>`:''}
@@ -1938,11 +2006,11 @@ function renderHome(){
 
 function newQ(skill,avoid,seed){let q,g=0;const sd=seed!=null?seed:Math.floor(Math.random()*2147483647);seed=sd;if(seed!=null)q=withSeed(seed,()=>GEN[skill]());else do{q=GEN[skill]()}while(avoid&&q.answer===avoid&&g++<6);q.seed=sd;q.picks=[];q.phase='ask';q.sel=null;q.bad=new Set();q.t0=Date.now();return q}
 function startQuest(mode,skills,o){o=o||{};quest={mode,day:o.day,qs:skills.map((s,i)=>newQ(s,null,o.seeds?o.seeds[i]:null)),i:0,t0:Date.now(),results:[]};
-  const seen=new Set();quest.qs.forEach(q=>{if(skillStats(q.skill).n===0&&!seen.has(q.skill)){q.learn=true;seen.add(q.skill)}});view='quest';render()}
+  const seen=new Set();quest.qs.forEach(q=>{const st=skillStats(q.skill);if(!seen.has(q.skill)&&(st.n===0||(SKILLS[q.skill].batch===5&&needsReview(q.skill)))){q.learn=true;q.relearn=st.n>0;seen.add(q.skill)}});view='quest';render()}
 function learnHTML(Q){
   const ex=Q.example||(Q.example=withSeed((Q.seed^0x5bd1e995)>>>0,()=>GEN[Q.skill]()));
   return `<article class="qcard learn"><p class="qmeta"><span>Question ${quest.i+1} of ${quest.qs.length}</span><span class="tag">${SKILLS[Q.skill].short}</span></p>
-  <h2>🆕 New kind of question! Let's learn it first.</h2>
+  <h2>${Q.relearn?'🔁 You missed this kind recently. Read the example again first.':'🆕 New kind of question! Let\'s learn it first.'}</h2>
   <p class="tip">💡 ${TIPS[Q.skill]}</p>
   <div class="ex"><p class="exlbl">Example</p><div class="qtext">${ex.text}</div>${ex.figure||''}
   ${ex.walkVisual?`<div class="figure">${ex.walkVisual}</div>`:''}
@@ -1955,7 +2023,7 @@ function miniLine(){return `<div class="mini" aria-label="Question ${quest.i+1} 
 function record(Q,res){
   state.attempts.push({d:today(),skill:Q.skill,res,code:Q.firstCode||null,secs:Math.round((Date.now()-Q.t0)/1000)});
   const plain=h=>String(h).replace(/<span class="frac"><span>(\d+)<\/span><i><\/i><span>(\d+)<\/span><\/span>/g,'$1/$2').replace(/<[^>]+>/g,'');
-  quest.results.push({skill:Q.skill,res,text:plain(Q.text)+(Q.brief?` [${Q.brief}]`:''),ans:Q.answer,picks:Q.picks.slice(),code:Q.firstCode||null,code2:Q.secondCode||null,hinted:!!Q.hinted,learned:!!Q.learn,
+  quest.results.push({skill:Q.skill,res,text:plain(Q.text)+(Q.brief?` [${Q.brief}]`:''),ans:Q.answer,picks:Q.picks.slice(),code:Q.firstCode||null,code2:Q.secondCode||null,hinted:!!Q.hinted,planMiss:Q.planMiss||0,learned:!!Q.learn,
     twin:Q.twin?{text:plain(Q.twin.text)+(Q.twin.brief?` [${Q.twin.brief}]`:''),ans:Q.twin.answer,pick:Q.twin.sel}:null});save();
 }
 
@@ -1966,7 +2034,24 @@ function renderQuest(){
     document.getElementById('quit').onclick=()=>askConfirm('Leave this ride?','Questions you already finished are saved. You can start a new ride any time.','Leave the ride','Keep going',()=>{view='home';render()});
     document.getElementById('ready').onclick=()=>{Q.learned=true;Q.t0=Date.now();renderQuest();window.scrollTo(0,0)};
     return;
-  }const twin=Q.phase==='twin'||Q.phase==='twinDone';const cur=twin?Q.twin:Q;
+  }
+  if(Q.phase==='ask'&&Q.plan&&(Q.planStep||0)<Q.plan.length){
+    const st=Q.planStep||0,P=Q.plan[st];Q.planBad=Q.planBad||[];Q.planNotes=Q.planNotes||[];
+    app.innerHTML=`<div class="qbar"><button class="link" id="quit">Back to the map</button>${miniLine()}</div>
+    <article class="qcard"><p class="qmeta"><span>Question ${quest.i+1} of ${quest.qs.length}</span><span class="tag">${SKILLS[Q.skill].short}</span></p>
+    <div class="qtext">${Q.text}</div>${Q.figure||''}
+    <section class="plan"><h3>🧭 Think first (${st+1} of ${Q.plan.length})</h3><p class="muted" style="margin:0 0 8px;font-size:15px">Read the question again. Plan before you work it out.</p>
+    ${Q.planNotes.length?`<ul class="pnotes">${Q.planNotes.map(n=>`<li>✔ ${n}</li>`).join('')}</ul>`:''}
+    <p class="pq"><b>${P.q}</b></p>
+    <div class="opts">${P.options.map(o=>`<button class="opt ${Q.planBad.includes(o)?'bad':''}" data-p="${esc(o)}" ${Q.planBad.includes(o)?'disabled':''}>${o}</button>`).join('')}</div>
+    ${Q.planBad.length?`<p class="tip hintbox">💡 ${P.hint}</p>`:''}</section></article>`;
+    document.getElementById('quit').onclick=()=>askConfirm('Leave this ride?','Questions you already finished are saved. You can start a new ride any time.','Leave the ride','Keep going',()=>{view='home';render()});
+    app.querySelectorAll('[data-p]:not([disabled])').forEach(b=>b.onclick=()=>{const o=b.dataset.p;
+      if(o===P.correct){Q.planNotes.push(P.note);Q.planStep=st+1;Q.planBad=[];if(Q.planStep>=Q.plan.length)Q.t0=Date.now()}else{Q.planBad.push(o);Q.planMiss=(Q.planMiss||0)+1}
+      renderQuest()});
+    return;
+  }
+  const twin=Q.phase==='twin'||Q.phase==='twinDone';const cur=twin?Q.twin:Q;
   const locked=!['ask','retry','twin'].includes(Q.phase);
   const last=quest.i===quest.qs.length-1;
   let fb='';
@@ -2000,7 +2085,8 @@ function renderQuest(){
     <p class="qmeta"><span>${twin?'Twin question':`Question ${quest.i+1} of ${quest.qs.length}`}</span><span class="tag">${SKILLS[cur.skill].short}</span></p>
     <div class="qtext">${cur.text}</div>
     ${cur.figure||''}
-    <p class="paper">✏️ Work it out on your paper, then choose your answer.</p>
+    ${!twin&&Q.planNotes&&Q.planNotes.length?`<div class="myplan"><b>🧭 My plan</b><ul class="pnotes">${Q.planNotes.map(n=>`<li>✔ ${n}</li>`).join('')}</ul></div>`:''}
+    <p class="paper">✏️ Work it out on your paper${Q.plan?' using your plan':''}, then choose your answer.</p>
     <div class="opts" role="group" aria-label="Answer choices">${cur.options.map(o=>`<button class="opt ${optCls(o)}" data-l="${esc(o.label)}" ${locked||(cur.bad&&cur.bad.has(o.label))?'disabled':''} aria-pressed="${o.label===cur.sel}">${o.label}</button>`).join('')}</div>
     <div class="actions">
       ${!locked?`<button class="btn" id="check" ${cur.sel?'':'disabled'}>Check my answer</button>`:''}
@@ -2265,7 +2351,7 @@ function renderParent(){
   ${Object.keys(SKILLS).map(k=>{const s=skillStats(k);return `<tr><td>${SKILLS[k].name}</td><td>${s.n}</td><td>${s.first}</td><td>${s.retry}</td><td>${s.fixed}</td><td>${s.missed}</td><td>${starHTML(s.stars)}</td></tr>`}).join('')}</table></div>
   <h2>Mistakes she is making</h2><div class="card">${misList.length?`<table>${misList.map(([c,n])=>`<tr><td>${MISTAKES[c]||c}</td><td>${n}×</td></tr>`).join('')}</table>`:'<p class="muted">Nothing yet. Her first wrong answer on each question is logged here by type.</p>'}</div>
   <h2>Recent rides</h2><div class="card tablewrap">${S.length?`<table><tr><th>Day</th><th>Date</th><th>Type</th><th>Right first time</th><th>Time taken</th></tr>${S.slice(-12).reverse().map(s=>`<tr><td>${s.day?'Day '+s.day:'–'}</td><td>${nice(s.d)}</td><td>${s.mode==='daily'?'First try':s.mode==='redo'?'Redo':s.mode==='extra'?'Extra ride':'Topic practice'}</td><td>${s.first} / ${s.n}</td><td>${Math.max(1,Math.round(s.secs/60))} min</td></tr>`).join('')}</table>`:'<p class="muted">No rides yet.</p>'}</div>
-  <h2>How it works</h2><div class="card"><p>There are ${TOTAL_DAYS} Days; finishing one unlocks the next straight away, and any finished Day can be redone with the same questions. Each ride has ${DAILY_N} questions: 2 warm-ups and ${DAILY_N-2} word problems. The first time she meets a new kind of question, she sees a short lesson with a worked example before trying it, and she can tap Hint any time, weighted towards her weakest topics and anything she missed in the last 3 days. When she gets a question wrong, she first gets a clue matched to her specific mistake and one more try. If she's still wrong, a guided fix walks her through it step by step, then she answers a twin question with new numbers. Even when she is right, she goes through the worked steps before moving on, and can open the hands-on guide.</p>
+  <h2>How it works</h2><div class="card"><p>There are ${TOTAL_DAYS} Days; finishing one unlocks the next straight away, and any finished Day can be redone with the same questions. Days 1 to ${EXAM_DAYS} came before the exam. Days ${EXAM_DAYS+1} to ${TOTAL_DAYS} are the holiday fix-up, built from her P3 final paper: each has ${DAILY_N} questions, 3 on fractions and the rest on the word problems and topics she lost marks on. On the fix-up word problems she first answers a short "Think first" step (for example, which bar is longer, or what to find first) before the answer choices appear; a wrong pick shows a hint, and her plan stays on screen while she works. If she missed a fix-up topic in the last 3 days, the worked example is shown again the next time it comes up. The first time she meets a new kind of question, she sees a short lesson with a worked example before trying it, and she can tap Hint any time, weighted towards her weakest topics and anything she missed in the last 3 days. When she gets a question wrong, she first gets a clue matched to her specific mistake and one more try. If she's still wrong, a guided fix walks her through it step by step, then she answers a twin question with new numbers. Even when she is right, she goes through the worked steps before moving on, and can open the hands-on guide.</p>
   <p><button class="pill" id="reset">Reset all progress</button></p></div></section>`;
   document.getElementById('back').onclick=()=>{view='home';render()};
   document.getElementById('bkSave').onclick=downloadBackup;
@@ -2286,7 +2372,7 @@ function renderAnswers(){
   box.innerHTML=`<label class="ansPick">Show ride: <select id="ansSel">${list.map(o=>`<option value="${o.i}" ${o.i===ansSel?'selected':''}>${sessLabel(o.x)} · ${nice(o.x.d)} · ${o.x.first}/${o.x.n}</option>`).join('')}</select></label>
   ${sameDay.length>1?`<p class="muted" style="font-size:15px;margin:8px 0 0">All tries of Day ${ss.day}: ${sameDay.map(r=>`${r.first}/${r.n}`).join(' → ')}</p>`:''}
   <ol class="alist">${ss.qs.map(q=>{const r=res[q.res]||['',''];return `<li class="aitem ${q.res}">
-    <div class="ahead"><span class="tag">${SKILLS[q.skill]?SKILLS[q.skill].short:q.skill}</span><span class="ares">${r[0]} ${r[1]}</span>${q.learned?'<span class="badge">saw lesson first</span>':''}${q.hinted?'<span class="badge">used hint</span>':''}</div>
+    <div class="ahead"><span class="tag">${SKILLS[q.skill]?SKILLS[q.skill].short:q.skill}</span><span class="ares">${r[0]} ${r[1]}</span>${q.learned?'<span class="badge">saw lesson first</span>':''}${q.hinted?'<span class="badge">used hint</span>':''}${q.planMiss?`<span class="badge">Think-first: ${q.planMiss} wrong pick${q.planMiss>1?'s':''}</span>`:''}</div>
     <p class="aq">${esc(q.text)}</p>
     <table class="atab"><tr><td>Correct answer</td><td><b>${esc(q.ans)}</b></td></tr>
     ${(q.picks||[]).map((pk,j)=>`<tr><td>${j?'2nd try':'1st try'}</td><td class="${pk===q.ans?'ok':'no'}">${esc(pk)} ${pk===q.ans?'✓':'✗'}${pk!==q.ans&&(j?q.code2:q.code)&&(j?q.code2:q.code)!=='other'?` <span class="muted">(${MISTAKES[j?q.code2:q.code]})</span>`:''}</td></tr>`).join('')}
