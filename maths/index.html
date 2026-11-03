@@ -1938,6 +1938,10 @@ function askConfirm(title,body,okLabel,cancelLabel,onOk,danger){
 }
 function render(){if(gameStop){gameStop();gameStop=null}({home:renderHome,quest:renderQuest,done:renderDone,parent:renderParent,game:renderGame})[view]();window.scrollTo(0,0)}
 const TOTAL_DAYS=EXAM_DAYS+HOLIDAY.length;
+// Fresh start (no Days done yet): begin with the fix-up Days, her weakest topics first.
+function weakFirst(){if(state.weakFirst===undefined&&!state.sessions.some(x=>x.mode==='daily'))return true;return !!state.weakFirst}
+function fixDayIdx(n){return weakFirst()?(n<=HOLIDAY.length?n-1:-1):(n>EXAM_DAYS?n-EXAM_DAYS-1:-1)}
+function isFixDay(n){const i=fixDayIdx(n);return i>=0&&!!HOLIDAY[i]}
 function migrate(st){
   if(!st)return st;let k=0;
   const seen=new Set();
@@ -1951,7 +1955,7 @@ function sessLabel(s){return s.mode==='daily'?`Day ${s.day}`:s.mode==='redo'?`Da
 function dayPlan(n){
   state.dayPlans=state.dayPlans||{};
   const pl0=state.dayPlans[n];
-  if(!pl0||(n>dayInfo().done&&pl0.skills.length!==DAILY_N)){const sk=n>EXAM_DAYS&&HOLIDAY[n-EXAM_DAYS-1]?HOLIDAY[n-EXAM_DAYS-1].slice():planDaily();state.dayPlans[n]={skills:sk,seeds:sk.map(()=>Math.floor(Math.random()*2147483647))};save()}
+  if(!pl0||(n>dayInfo().done&&pl0.skills.length!==DAILY_N)){if(state.weakFirst===undefined)state.weakFirst=weakFirst();const sk=isFixDay(n)?HOLIDAY[fixDayIdx(n)].slice():planDaily();state.dayPlans[n]={skills:sk,seeds:sk.map(()=>Math.floor(Math.random()*2147483647))};save()}
   return state.dayPlans[n];
 }
 function startDay(n){const pl=dayPlan(n);startQuest(n<=dayInfo().done?'redo':'daily',pl.skills,{day:n,seeds:pl.seeds})}
@@ -1978,7 +1982,7 @@ function starHTML(n){return `<span class="stars" aria-label="${n} of 3 stars">${
 function renderHome(){
   const {cur,done}=dayInfo(),all=done>=TOTAL_DAYS,nd=Math.min(cur,TOTAL_DAYS);
   const lastG=done?gameFor(done):null,canPlay=done&&playsLeft(done)>0;
-  const hol=nd>EXAM_DAYS;const title=all?`All ${TOTAL_DAYS} days done! You're ready for P4`:hol?`Holiday fix-up: Day ${nd} of ${TOTAL_DAYS}`:`Day ${nd} of ${TOTAL_DAYS}`;
+  const hol=isFixDay(nd);const title=all?`All ${TOTAL_DAYS} days done! You're ready for P4`:hol?`${weakFirst()?'Weakest topics first':'Holiday fix-up'}: Day ${nd} of ${TOTAL_DAYS}`:`Day ${nd} of ${TOTAL_DAYS}`;
   const doneDays=[];for(let i=1;i<=done;i++)doneDays.push(i);
   app.innerHTML=`
   <div class="top"><div><h1 class="display">Yu En's Maths Line</h1><p class="sub">${title}. Finish a ride to unlock the next station. You can go as fast as you like!</p></div>
@@ -2351,7 +2355,7 @@ function renderParent(){
   ${Object.keys(SKILLS).map(k=>{const s=skillStats(k);return `<tr><td>${SKILLS[k].name}</td><td>${s.n}</td><td>${s.first}</td><td>${s.retry}</td><td>${s.fixed}</td><td>${s.missed}</td><td>${starHTML(s.stars)}</td></tr>`}).join('')}</table></div>
   <h2>Mistakes she is making</h2><div class="card">${misList.length?`<table>${misList.map(([c,n])=>`<tr><td>${MISTAKES[c]||c}</td><td>${n}×</td></tr>`).join('')}</table>`:'<p class="muted">Nothing yet. Her first wrong answer on each question is logged here by type.</p>'}</div>
   <h2>Recent rides</h2><div class="card tablewrap">${S.length?`<table><tr><th>Day</th><th>Date</th><th>Type</th><th>Right first time</th><th>Time taken</th></tr>${S.slice(-12).reverse().map(s=>`<tr><td>${s.day?'Day '+s.day:'–'}</td><td>${nice(s.d)}</td><td>${s.mode==='daily'?'First try':s.mode==='redo'?'Redo':s.mode==='extra'?'Extra ride':'Topic practice'}</td><td>${s.first} / ${s.n}</td><td>${Math.max(1,Math.round(s.secs/60))} min</td></tr>`).join('')}</table>`:'<p class="muted">No rides yet.</p>'}</div>
-  <h2>How it works</h2><div class="card"><p>There are ${TOTAL_DAYS} Days; finishing one unlocks the next straight away, and any finished Day can be redone with the same questions. Days 1 to ${EXAM_DAYS} came before the exam. Days ${EXAM_DAYS+1} to ${TOTAL_DAYS} are the holiday fix-up, built from her P3 final paper: each has ${DAILY_N} questions, 3 on fractions and the rest on the word problems and topics she lost marks on. On the fix-up word problems she first answers a short "Think first" step (for example, which bar is longer, or what to find first) before the answer choices appear; a wrong pick shows a hint, and her plan stays on screen while she works. If she missed a fix-up topic in the last 3 days, the worked example is shown again the next time it comes up. The first time she meets a new kind of question, she sees a short lesson with a worked example before trying it, and she can tap Hint any time, weighted towards her weakest topics and anything she missed in the last 3 days. When she gets a question wrong, she first gets a clue matched to her specific mistake and one more try. If she's still wrong, a guided fix walks her through it step by step, then she answers a twin question with new numbers. Even when she is right, she goes through the worked steps before moving on, and can open the hands-on guide.</p>
+  <h2>How it works</h2><div class="card"><p>There are ${TOTAL_DAYS} Days; finishing one unlocks the next straight away, and any finished Day can be redone with the same questions. ${weakFirst()?`This run starts with her weakest topics: Days 1 to ${HOLIDAY.length} are the fix-up Days, and Days ${HOLIDAY.length+1} to ${TOTAL_DAYS} mix all ${Object.keys(SKILLS).length} topics, weighted towards the ones she gets wrong most. The fix-up Days are`:`Days 1 to ${EXAM_DAYS} came before the exam. Days ${EXAM_DAYS+1} to ${TOTAL_DAYS} are the holiday fix-up,`} built from her P3 final paper: each has ${DAILY_N} questions, 3 on fractions and the rest on the word problems and topics she lost marks on. On the fix-up word problems she first answers a short "Think first" step (for example, which bar is longer, or what to find first) before the answer choices appear; a wrong pick shows a hint, and her plan stays on screen while she works. If she missed a fix-up topic in the last 3 days, the worked example is shown again the next time it comes up. The first time she meets a new kind of question, she sees a short lesson with a worked example before trying it, and she can tap Hint any time, weighted towards her weakest topics and anything she missed in the last 3 days. When she gets a question wrong, she first gets a clue matched to her specific mistake and one more try. If she's still wrong, a guided fix walks her through it step by step, then she answers a twin question with new numbers. Even when she is right, she goes through the worked steps before moving on, and can open the hands-on guide.</p>
   <p><button class="pill" id="reset">Reset all progress</button></p></div></section>`;
   document.getElementById('back').onclick=()=>{view='home';render()};
   document.getElementById('bkSave').onclick=downloadBackup;
