@@ -1856,6 +1856,53 @@ function save(){
   state.updatedAt=Date.now();
   try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
   if(remote){const snap=JSON.stringify(state),ts=state.updatedAt;saving=saving.then(()=>remote.set({json:snap,updatedAt:ts})).catch(()=>{})}
+  if(sync.push)sync.push();
+}
+// ---------- cloud sync (Firebase, Google sign-in) ----------
+// Paste the config from Firebase console > Project settings > Your apps > Web app.
+const FIREBASE_CONFIG=null;
+const FBV='10.12.2',FBU=m=>`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}.js`;
+const sync={status:FIREBASE_CONFIG?'loading':'nocfg',user:null,last:null,err:null,push:null,signIn:null,signOut:null};
+function packState(){let j=JSON.stringify(state);if(j.length<900000)return j;const c=JSON.parse(j);for(const x of c.sessions){if(j.length<900000)break;delete x.qs;j=JSON.stringify(c)}return j}
+function applyRemote(d){try{const st=JSON.parse(d.json);if(st&&st.v===1){state=migrate(st);try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}sync.last=Date.now();
+  if(view==='home'||view==='parent'||view==='done'){const y=window.scrollY;render();window.scrollTo(0,y)}}}catch(e){}}
+async function cloudInit(){
+  if(!FIREBASE_CONFIG)return;
+  try{
+    const [A,U,F]=await Promise.all([import(FBU('app')),import(FBU('auth')),import(FBU('firestore'))]);
+    const app=A.initializeApp(FIREBASE_CONFIG),auth=U.getAuth(app),db=F.getFirestore(app);
+    try{await U.getRedirectResult(auth)}catch(e){}
+    sync.signIn=async()=>{const pv=new U.GoogleAuthProvider();try{await U.signInWithPopup(auth,pv)}catch(e){if(e&&/popup-blocked|operation-not-supported/.test(e.code||''))await U.signInWithRedirect(auth,pv);else{sync.err=e.code||e.message;refreshCloudUI()}}};
+    sync.signOut=()=>U.signOut(auth);
+    let unsub=null,timer=null;
+    U.onAuthStateChanged(auth,async u=>{
+      sync.user=u;if(unsub){unsub();unsub=null}sync.push=null;
+      if(!u){sync.status='signedout';refreshCloudUI();return}
+      const ref=F.doc(db,'users',u.uid,'progress','maths');
+      try{
+        const snap=await F.getDoc(ref);
+        if(snap.exists()&&(snap.data().updatedAt||0)>(state.updatedAt||0))applyRemote(snap.data());
+        sync.push=()=>{clearTimeout(timer);sync.status='saving';refreshCloudUI();timer=setTimeout(async()=>{try{await F.setDoc(ref,{json:packState(),updatedAt:state.updatedAt||Date.now()});sync.last=Date.now();sync.status='ok';sync.err=null}catch(e){sync.status='err';sync.err=e.code||e.message}refreshCloudUI()},1200)};
+        if(!snap.exists()||(snap.data().updatedAt||0)<(state.updatedAt||0)){if(state.sessions.length||state.attempts.length)sync.push()}
+        sync.status='ok';sync.last=Date.now();sync.err=null;
+        unsub=F.onSnapshot(ref,sn=>{if(sn.exists()&&!sn.metadata.hasPendingWrites){const d=sn.data();if((d.updatedAt||0)>(state.updatedAt||0))applyRemote(d)}});
+      }catch(e){sync.status='err';sync.err=e.code||e.message}
+      refreshCloudUI();
+    });
+  }catch(e){sync.status='err';sync.err=String(e&&e.message||e);refreshCloudUI()}
+}
+function cloudMini(){return sync.status==='ok'||sync.status==='saving'?'☁️ Saved online':sync.status==='signedout'?'☁️ Not signed in: progress saved on this computer only':sync.status==='err'?'☁️ Online save problem':''}
+function cloudHTML(){
+  const t=sync.last?new Date(sync.last).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
+  if(sync.status==='nocfg')return '<p class="muted">Online sync is not set up yet. Progress is saved in this browser only.</p>';
+  if(sync.status==='loading')return '<p class="muted">Connecting…</p>';
+  if(sync.status==='signedout')return `<p>Sign in with your Google account to save her progress online. Use the <b>same Google account</b> on her laptop and on your phone, and you will both see the same progress.</p><div class="actions"><button class="btn" id="cloudIn">Sign in with Google</button></div>${sync.err?`<p class="msg no">${esc(sync.err)}</p>`:''}`;
+  if(sync.status==='err')return `<p class="msg no">Online sync problem: ${esc(sync.err||'unknown')}</p><p class="muted">Progress is still saved in this browser.</p><div class="actions">${sync.signIn?'<button class="btn soft" id="cloudIn">Try signing in again</button>':''}</div>`;
+  return `<p>✅ ${sync.status==='saving'?'Saving…':'Synced'} with <b>${esc(sync.user&&sync.user.email||'')}</b>${t?` · last sync ${t}`:''}</p><p class="muted" style="font-size:15px">Any device signed in to this Google account shows the same progress, and updates live while she works.</p><div class="actions"><button class="link" id="cloudOut">Sign out on this device</button></div>`;
+}
+function refreshCloudUI(){
+  const b=document.getElementById('cloudBox');if(b){b.innerHTML=cloudHTML();const i=document.getElementById('cloudIn');if(i)i.onclick=()=>sync.signIn&&sync.signIn();const o=document.getElementById('cloudOut');if(o)o.onclick=()=>askConfirm('Sign out on this device?','Progress stays saved online and in this browser.','Sign out','Cancel',()=>sync.signOut&&sync.signOut())}
+  const m=document.getElementById('cloudMini');if(m)m.textContent=cloudMini();
 }
 (async function connect(){
   try{
@@ -1988,7 +2035,7 @@ function renderHome(){
   const hol=isFixDay(nd);const title=all?`All ${TOTAL_DAYS} days done! You're ready for P4`:hol?`${weakFirst()?'Weakest topics first':'Holiday fix-up'}: Day ${nd} of ${TOTAL_DAYS}`:`Day ${nd} of ${TOTAL_DAYS}`;
   const doneDays=[];for(let i=1;i<=done;i++)doneDays.push(i);
   app.innerHTML=`
-  <div class="top"><div><h1 class="display">Yu En's Maths Line</h1><p class="sub">${title}. Finish a ride to unlock the next station. You can go as fast as you like!</p></div>
+  <div class="top"><div><h1 class="display">Yu En's Maths Line</h1><p class="sub">${title}. Finish a ride to unlock the next station. You can go as fast as you like!</p><p class="muted" id="cloudMini" style="font-size:14px;margin:4px 0 0">${cloudMini()}</p></div>
   <button class="link" id="toParent">For parents</button></div>
   <div class="linebox" id="linebox">${lineSVG()}</div>
   <section class="ride">
@@ -2365,6 +2412,7 @@ function renderParent(){
     <div class="card kpi"><b>${pct(A)}</b><span>right first time (all)</span></div>
     <div class="card kpi"><b>${pct(A.slice(-15))}</b><span>right first time (last 15)</span></div>
   </div>
+  <h2>Online sync</h2><div class="card" id="cloudBox">${cloudHTML()}</div>
   <h2>Backup</h2><div class="card backup ${needBackup()?'warn':''}">
     <p id="bkStatus">${backupStatus()}</p>
     <p class="muted" id="persist" style="font-size:16px"></p>
@@ -2383,7 +2431,7 @@ function renderParent(){
   document.getElementById('back').onclick=()=>{view='home';render()};
   document.getElementById('bkSave').onclick=downloadBackup;
   const bf=document.getElementById('bkFile');document.getElementById('bkLoad').onclick=()=>{bf.value='';bf.click()};bf.onchange=()=>{const m=document.getElementById('bkMsg');m.textContent='';if(bf.files[0])restoreBackup(bf.files[0])};
-  showPersist();renderAnswers();
+  showPersist();renderAnswers();refreshCloudUI();
   document.getElementById('reset').onclick=()=>askConfirm('Erase all progress?','All rides, stars and mistake records will be deleted. This cannot be undone.','Erase everything','Cancel',()=>{state=blank();save();render()},true);
 }
 
@@ -2585,6 +2633,7 @@ const GAME_FNS={catch:gameCatch,match:gameMatch,pop:gameBalloon,dash:gameDash};
 
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){}
 render();
+cloudInit();
 </script>
 </body>
 </html>
