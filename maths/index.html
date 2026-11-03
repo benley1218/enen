@@ -241,6 +241,8 @@ rect.cell{cursor:pointer}
 .notes{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.note{border:2px solid var(--line);background:var(--line-soft);border-radius:6px;padding:2px 6px;font-size:14px;font-weight:700}.note.big{border-color:var(--blue);background:var(--blue-soft)}
 .plan{border:2px dashed var(--blue);border-radius:16px;padding:12px 14px;margin:12px 0}.plan h3{margin:0 0 4px}.pq{margin:8px 0}
 .myplan{background:var(--blue-soft);border-radius:14px;padding:10px 14px;margin:10px 0}.pnotes{list-style:none;padding:0;margin:6px 0 0}.pnotes li{margin:3px 0;font-size:16px}
+.trace{border-color:var(--sun)}.trops{grid-template-columns:1fr}.trops .opt{font-size:19px;text-align:left;min-height:56px;font-family:inherit;font-weight:700}
+.yourthink{background:var(--blue-soft);border-radius:10px;padding:8px 12px;margin:6px 0;font-size:17px}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -252,6 +254,7 @@ rect.cell{cursor:pointer}
 const pad=n=>String(n).padStart(2,'0');
 let RNG=Math.random;
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296}}
+function TR(first,num,mean){return {first:{c:first[0],w:first[1]},num,mean:{c:mean[0],w:mean[1]}}}
 function withSeed(seed,fn){const old=RNG;RNG=mulberry32(seed);try{return fn()}finally{RNG=old}}
 const R={
   rand:()=>RNG(),
@@ -503,7 +506,7 @@ function genMoney(){
   };
   const tag=(nm,p)=>`<div class="ptag"><div class="n">${nm}</div><div>${money(p)} each</div></div>`;
   const walkVisual=barCompare(T,M*100,who);
-  return {skill:'money',walkVisual,brief:`${i1[0]} ${money(a)}, ${i2[0]} ${money(b)}, ${i3[0]} ${money(c)} each`,
+  return {skill:'money',trace:TR([`Total cost: ${money(a)} + ${money(b)} + ${n} × ${money(c)}`,[`$${M} − ${money(a)} − ${money(b)} − ${money(c)}`,`${money(a)} + ${money(b)} + ${money(c)}`]],money(T),[`the cost of everything ${who} wants`,[`the money ${who} has left`,`how much more money ${who} needs`]]),walkVisual,brief:`${i1[0]} ${money(a)}, ${i2[0]} ${money(b)}, ${i3[0]} ${money(c)} each`,
     text:`${who} has <b>$${M}</b>. ${who} would like to buy a ${i1[0]}, a ${i2[0]} and <b>${n} ${plural(i3[0])}</b>. How much more money does ${who} need to buy these items?`,
     figure:`<div class="figure tags">${tag(i1[0],a)}${tag(i2[0],b)}${tag(i3[0],c)}</div>`,
     options:makeOptions(money(ans),ds,()=>money(ans+R.pick([-100,100,-50,50,-10,10]))),answer:money(ans),why,
@@ -540,7 +543,7 @@ function genBeforeAfter(){
   };
   const u=r-1;
   const walkVisual=baSVG(X,Y,r,n,D,g);
-  return {skill:'beforeAfter',walkVisual,
+  return {skill:'beforeAfter',trace:TR([`${D} − ${n}`,[`${D} + ${n}`,`${D} ÷ ${r}`]],String(D-n),[`the difference between the ${X} and ${Y} at first`,[`the number of ${X} at first`,`the total at the end`]]),walkVisual,
     text:`${place}, there were <b>${rw}</b> ${X} as ${Y} at first. <b>${n} more ${X}</b> ${verb}. In the end, there were <b>${D} more ${X}</b> than ${Y}. How many ${X} and ${Y} were there <b>altogether at first</b>?`,
     options:makeOptions(String(ans),ds,()=>String(ans+R.pick([-6,-3,3,6,9]))),answer:String(ans),why,
     remedy:[
@@ -587,7 +590,7 @@ function genSets(){
   const split=`<div class="icons">${row(1,3)}<span class="eq">= ${A} ml</span></div><div class="icons"><span class="grp">${row(1,2)}</span><span class="grp">${row(1,2)}</span><span class="eq">= ${B} ml</span></div><p class="muted">Each yellow group = ${B/2} ml</p>`;
   const cmp=`<div class="icons"><span class="grp">${row(1,2)}</span><span class="grp hl">${c.si}</span><span class="eq">= ${A} ml</span></div><div class="icons"><span class="grp">${row(1,2)}</span><span class="eq">= ${B/2} ml</span></div>`;
   if(mode==='cup'){
-    return {skill:'sets',walkVisual:cmp,text:base+`What is the capacity of <b>one ${c.small}</b>?`,
+    return {skill:'sets',walkVisual:cmp,trace:TR([`${B} ÷ 2`,[`${B} × 2`,`${A} + ${B}`]],`${B/2} ml`,[`1 ${c.big} and 2 ${sp}`,[`1 ${c.small}`,`2 ${bp} and 4 ${sp}`]]),text:base+`What is the capacity of <b>one ${c.small}</b>?`,
       options:makeOptions(C+' ml',[{label:(2*B)+' ml',code:'doubled'},{label:(B/2)+' ml',code:'halfStop'},{label:(B-A)+' ml',code:'pairNotCup'}],()=>(C+R.pick([-50,50,-25,25]))+' ml'),answer:C+' ml',why,
       remedy:[
         {title:'Draw both sentences',visual:rows,ask:makeAsk(`The second row is 2 ${c.bi} and 4 ${c.si}. If we split it into 2 equal groups, each group has…`,`1 ${c.bi} and 2 ${c.si}`,[`2 ${c.bi} and 2 ${c.si}`,`1 ${c.bi} and 4 ${c.si}`],`Share 2 ${bp} into 2 groups, and 4 ${sp} into 2 groups.`)},
@@ -597,7 +600,7 @@ function genSets(){
       solution:[`2 ${bp} + 4 ${sp} = ${B} ml, so 1 ${c.big} + 2 ${sp} = ${B} ÷ 2 = ${B/2} ml`,`1 ${c.big} + 3 ${sp} = ${A} ml`,`1 ${c.small} = ${A} − ${B/2} = ${C} ml`]};
   }
   const ans=B-A;
-  return {skill:'sets',walkVisual:`<div class="icons">${row(1,3)}<span class="eq">= ${A} ml</span></div><div class="icons"><span class="x">${row(1,3)}</span><span class="grp hl">${row(1,1)}</span><span class="eq">= ${B} ml</span></div>`,text:base+`What is the total capacity of <b>one ${c.big} and one ${c.small}</b>?`,
+  return {skill:'sets',trace:TR([`${B} − ${A}`,[`${A} + ${B}`,`${B} × 2`]],`${B-A} ml`,[`1 ${c.big} and 1 ${c.small}`,[`1 ${c.small}`,`1 ${c.big}`]]),walkVisual:`<div class="icons">${row(1,3)}<span class="eq">= ${A} ml</span></div><div class="icons"><span class="x">${row(1,3)}</span><span class="grp hl">${row(1,1)}</span><span class="eq">= ${B} ml</span></div>`,text:base+`What is the total capacity of <b>one ${c.big} and one ${c.small}</b>?`,
     options:makeOptions(ans+' ml',[{label:(2*B)+' ml',code:'doubled'},{label:(B/2)+' ml',code:'halfStop'},{label:(A+B)+' ml',code:'addedAll'}],()=>(ans+R.pick([-100,100,-50,50]))+' ml'),answer:ans+' ml',why,
     remedy:[
       {title:'Draw both sentences',visual:rows,ask:makeAsk('Compare the two rows. What does row 2 have that row 1 does not?',`1 ${c.bi} and 1 ${c.si}`,[`1 ${c.bi} and 3 ${c.si}`,`2 ${c.si}`,`2 ${c.bi}`],`Cross out what is the same in both rows: 1 ${c.bi} and 3 ${c.si}. What is left in row 2?`)},
@@ -634,13 +637,13 @@ function genSquares(){
   ];
   if(mode==='side'){
     const up=(L+P)/2;
-    return {skill:'squares',text:base+'Find the length of one side of <b>Square D</b>.',figure:`<div class="figure">${squaresFig(L)}</div>`,
+    return {skill:'squares',trace:TR([`${P} ÷ 4`,[`${L} ÷ 2`,`${P} × 4`]],`${d} cm`,['how much longer a side of D is than a side of C',['a side of Square C','the perimeter of Square C']]),text:base+'Find the length of one side of <b>Square D</b>.',figure:`<div class="figure">${squaresFig(L)}</div>`,
       options:makeOptions(b+' cm',[{label:Number.isInteger(up)?up+' cm':null,code:'usedP'},{label:L%2===0?(L/2)+' cm':null,code:'halfL'},{label:a+' cm',code:'wrongSquare'}],()=>(b+R.pick([-2,1,2,3]))+' cm'),answer:b+' cm',why,
       remedy:[...common,{title:'Find Square D',ask:makeAsk(`The sides add up to ${L} cm and D is ${d} cm longer. (${L} + ${d}) ÷ 2 = ?`,b+' cm',[a+' cm',(L/2)+' cm',(L+d)+' cm'],`Add the difference first, then halve: ${L} + ${d} = ${L+d}, and ${L+d} ÷ 2.`)}],
       solution:[`Perimeter difference ${P} cm, so side difference = ${P} ÷ 4 = ${d} cm`,`Side of D = (${L} + ${d}) ÷ 2 = ${b} cm`,`(Side of C = ${L} − ${b} = ${a} cm)`]};
   }
   const ans=a*a+b*b;
-  return {skill:'squares',text:base+'Find the <b>area of the figure</b>.',figure:`<div class="figure">${squaresFig(L)}</div>`,
+  return {skill:'squares',trace:TR([`${P} ÷ 4`,[`${L} ÷ 2`,`${P} × 4`]],`${d} cm`,['how much longer a side of D is than a side of C',['a side of Square C','the perimeter of Square C']]),text:base+'Find the <b>area of the figure</b>.',figure:`<div class="figure">${squaresFig(L)}</div>`,
     options:makeOptions(ans+' cm²',[{label:(b*b)+' cm²',code:'oneSquare'},{label:(L*L)+' cm²',code:'bigSquare'},{label:(4*L)+' cm²',code:'perimeter'}],()=>(ans+R.pick([-10,10,-4,4]))+' cm²'),answer:ans+' cm²',why,
     remedy:[...common,{title:'Add both areas',ask:makeAsk(`Square C is ${a} cm, Square D is ${b} cm. ${a} × ${a} + ${b} × ${b} = ?`,ans+' cm²',[(b*b)+' cm²',(L*L)+' cm²',(ans+2)+' cm²'],`${a} × ${a} = ${a*a} and ${b} × ${b} = ${b*b}. Now add.`)}],
     solution:[`Side difference = ${P} ÷ 4 = ${d} cm`,`Square D = (${L} + ${d}) ÷ 2 = ${b} cm, Square C = ${a} cm`,`Area = ${a*a} + ${b*b} = ${ans} cm²`]};
@@ -919,7 +922,7 @@ function genTransfer(){
     noChange:`The gap does change! Someone gave ${item} away.`,
     other:`Draw two bars. Move ${n} from ${giver}'s bar to ${recv}'s bar and see how the gap changes.`
   };
-  return {skill:'transfer',walkVisual:transferSVG(A,B,D,n,atob,ans),
+  return {skill:'transfer',trace:TR([`How much the gap changes: ${n} + ${n}`,[`${D} ${atob?'−':'+'} ${n}`,`${D} ${atob?'+':'−'} ${n}`]],String(2*n),['how much the gap changes',[`how many ${item} ${giver} gave`,`how many ${item} ${A} has`]]),walkVisual:transferSVG(A,B,D,n,atob,ans),
     text:`${A} had <b>${D} more</b> ${item} than ${B} at first. ${giver} then gave <b>${n}</b> ${item} to ${recv}. How many more ${item} did ${A} have than ${B} in the end?`,
     options:makeOptions(String(ans),[{label:String(atob?D-n:D+n),code:'onceOnly'},{label:atob?String(D+2*n):(D-2*n>0?String(D-2*n):null),code:'wrongWay'},{label:String(D),code:'noChange'}],()=>String(Math.max(2,ans+R.pick([-10,-5,5,10,20])))),answer:String(ans),why,
     remedy:[
@@ -954,7 +957,7 @@ function genWatch(){
     addDur:`The question asks when ${pl} STARTED. Count backwards, not forwards.`,
     other:`First find the real time ${pl} stopped. Then count back ${dur(dd)}.`
   };
-  return {skill:'watch',walkVisual:tlBack(start,mid,end,true),
+  return {skill:'watch',trace:TR([`${t12(watch)} ${fast?'−':'+'} ${k} min`,[`${t12(watch)} − ${dur(dd)}`,`${t12(watch)} ${fast?'+':'−'} ${k} min`]],t12(end),[`the real time ${pl} stopped`,[`the time ${pl} started`,'the time on the watch']]),walkVisual:tlBack(start,mid,end,true),
     text:`${nm} spent <b>${dur(dd)}</b> ${act[0]}. ${P} checked ${pp} watch when ${pl} ${act[1]} and it was <b>${t12(watch)}</b> ${capF(pp)} watch was <b>${k} minutes ${fast?'faster':'slower'}</b> than the actual time. What was the actual time ${pl} started ${act[2]}?`,
     options:makeOptions(t12(start),[{label:t12(start+720),code:'ampm'},{label:t12(fast?start+2*k:start-2*k),code:'watchDir'},{label:t12(fast?start+k:start-k),code:'noWatchFix'},{label:t12(watch+dd),code:'addDur'}],()=>t12(start+R.pick([-60,60,-10,10,-5,5]))),answer:t12(start),why,
     remedy:[
@@ -980,7 +983,7 @@ function genGroups(){
     divK:`Divide by the group size (${g}) first, to find the number of groups.`,
     other:`Step 1: number of groups = ${N} ÷ ${g}. Step 2: leaders = groups × ${k}.`
   };
-  return {skill:'groups',walkVisual:groupsVis(g,k,G),
+  return {skill:'groups',trace:TR([`${N} ÷ ${g}`,[`${g} × ${k}`,`${N} ÷ ${k}`]],String(G),['the number of groups',['the number of pupils in each group','the number of group leaders']]),walkVisual:groupsVis(g,k,G),
     text:`<b>${N}</b> pupils were divided equally into <b>groups of ${g}</b>. <b>${k}</b> pupils from each group were chosen as group leaders. How many group leaders were there altogether?`,
     options:makeOptions(String(ans),[{label:String(g*k),code:'perGroup'},{label:String(G),code:'groupsOnly'},{label:Number.isInteger(N/k)?String(N/k):null,code:'divK'}],()=>String(ans+R.pick([-10,-2,2,10,k]))),answer:String(ans),why,
     remedy:[
@@ -1002,7 +1005,7 @@ function genRemaining(){
     forgotOne:`Don't forget the ${a} pupils in the first class!`,
     other:`1 class has ${a}. The other ${c-1} classes have ${b} each. Add them all.`
   };
-  return {skill:'remaining',walkVisual:classesVis(c,a,b),
+  return {skill:'remaining',trace:TR([`${c-1} × ${b}`,[`${a} + ${b}`,`${c} × ${b}`]],String((c-1)*b),[`the pupils in the ${c-1} remaining classes`,[`the pupils in all ${c} classes`,'the pupils in one class']]),walkVisual:classesVis(c,a,b),
     text:`${T} took <b>${c} classes</b> of pupils to ${ctx[0]}. ${P} gave each pupil ${ctx[1]}. There were <b>${a}</b> pupils in one of the classes and <b>${b}</b> pupils in <b>each of the remaining</b> classes. How many ${ctx[2]} did ${T} give away altogether?`,
     options:makeOptions(String(ans),[{label:String(a+b),code:'remOnce'},{label:String(c*b),code:'allSame'},{label:String(a+c*b),code:'remCount'},{label:String((c-1)*b),code:'forgotOne'}],()=>String(ans+R.pick([-10,10,-1,1]))),answer:String(ans),why,
     remedy:[
@@ -1036,7 +1039,7 @@ function genTrees(){
     fromFirst:`The question starts at the ${ord(p)} ${kind[1]}, not the 1st.`,
     other:`Count gaps: gaps = ${kind[1]}s − 1. Find 1 gap first.`
   };
-  return {skill:'trees',walkVisual:treesSVG(kind[1],Math.max(k,6),1,k,`${D} m = ${k-1} gaps`,true),
+  return {skill:'trees',trace:TR([`${D} ÷ ${k-1}`,[`${D} ÷ ${k}`,`${D} × ${q-p}`]],`${g} m`,[`the distance between 2 ${kind[1]}s next to each other`,[`the distance from the 1st to the ${ord(k)} ${kind[1]}`,`the number of ${kind[1]}s`]]),walkVisual:treesSVG(kind[1],Math.max(k,6),1,k,`${D} m = ${k-1} gaps`,true),
     text:`${kind[0]} are ${kind[2]} at an equal distance apart. The distance between the 1st and the ${ord(k)} ${kind[1]} is <b>${D} m</b>. Find the distance between the <b>${ord(p)}</b> ${kind[1]} and the <b>${ord(q)}</b> ${kind[1]}.`,
     figure:`<div class="figure">${treesSVG(kind[1],Math.max(k,6),1,k,`${D} m`,false)}</div>`,
     options:makeOptions(`${ans} m`,[{label:Number.isInteger(D/k)?`${(q-p)*D/k} m`:null,code:'gapTrees'},{label:`${(q-p+1)*g} m`,code:'gapPlusOne'},{label:`${(q-1)*g} m`,code:'fromFirst'}],()=>`${ans+R.pick([-2,2,-1,1])*g} m`),answer:`${ans} m`,why,
@@ -1062,7 +1065,7 @@ function genBoxes(){
     other:`Step 1: ${N} − ${H}. Step 2: divide by ${b}. If there is a remainder, add 1 more.`
   };
   const one=it[1]==='boxes'?'box':'packet';
-  return {skill:'boxes',walkVisual:`<div class="icons" style="font-size:20px">📦 × ${q} <span class="eq">= ${q*b} ${it[0]}</span></div><div class="icons" style="font-size:20px">📦 <span class="eq">1 more ${one} for the ${r} left over</span></div>`,
+  return {skill:'boxes',trace:TR([`${N} − ${H}`,[`${N} ÷ ${b}`,`${N} + ${H}`]],String(need),[`how many more ${it[0]} are needed`,[`how many ${it[1]} to buy`,`how many ${it[0]} ${pl} has`]]),walkVisual:`<div class="icons" style="font-size:20px">📦 × ${q} <span class="eq">= ${q*b} ${it[0]}</span></div><div class="icons" style="font-size:20px">📦 <span class="eq">1 more ${one} for the ${r} left over</span></div>`,
     text:`${nm} needs <b>${N}</b> ${it[0]} for ${it[2]}. ${P} has <b>${H}</b> ${it[0]}. ${capF(it[0])} are sold in ${it[1]} of <b>${b}</b>. What is the <b>least</b> number of ${it[1]} of ${it[0]} that ${pl} needs to buy?`,
     options:makeOptions(String(ans),[{label:String(q),code:'forgotRem'},{label:String(Math.ceil(N/b)),code:'noHas'},{label:String(Math.ceil((N+H)/b)),code:'addHas'}],()=>String(ans+R.pick([-3,-2,2,3]))),answer:String(ans),why,
     remedy:[
@@ -1093,7 +1096,7 @@ function genRatio(){
     divM:`The jug and bottle together make ${m} + 1 = ${m+1} units, not ${m}.`,
     other:`Draw the model: jug ${m} units, bottle 1 unit. ${m+1} units = ${T} ml.`
   };
-  return {skill:'ratio',walkVisual:jugSVG(m,u,T,true),
+  return {skill:'ratio',trace:TR([`${T} ÷ ${m+1}`,[`${T} ÷ ${m}`,`${T} × ${m}`]],`${u} ml`,['the amount in the bottle (1 unit)',['the amount in the jug','how much more is in the jug']]),walkVisual:jugSVG(m,u,T,true),
     text:`${nm} made <b>${T} ml</b> of ${drink}. All of it was poured into 1 jug and 1 bottle without spilling. Both were filled completely. The jug had <b>${m} times as much</b> ${drink} as the bottle. How much <b>more</b> ${drink} was there in the jug than in the bottle?`,
     options:makeOptions(`${ans} ml`,[{label:`${u} ml`,code:'oneUnit'},{label:`${m*u} ml`,code:'jugOnly'},{label:`${ans} ℓ`,code:'unitL'},{label:Number.isInteger(T/m)?`${T/m} ml`:null,code:'divM'}],()=>`${ans+R.pick([-50,50,-25,25])} ml`),answer:`${ans} ml`,why,
     remedy:[
@@ -1115,7 +1118,7 @@ function genSale(){
     addBoth:`"How much more" means find the difference: take away, not add.`,
     other:`Usual price for ${n}: ${n} × ${money(p)}. Then take away the sale price.`
   };
-  return {skill:'sale',walkVisual:compareBars('Friday',n*p,'Wednesday',S,money,`${money(save)} more`),
+  return {skill:'sale',trace:TR([`${n} × ${money(p)}`,[`${money(S)} ÷ ${n}`,`${money(S)} + ${money(p)}`]],money(n*p),[`what ${pl} paid on Friday`,[`how much more ${pl} paid`,'the sale price']]),walkVisual:compareBars('Friday',n*p,'Wednesday',S,money,`${money(save)} more`),
     text:`${nm} paid <b>${money(S)}</b> for ${n} ${it[0]} during a sale on Wednesday. The usual price is <b>${money(p)} per ${it[1]}</b>. ${P} bought another ${n} ${it[0]} at the usual price on Friday. How much <b>more</b> did ${pl} pay on Friday?`,
     figure:`<div class="figure tags"><div class="ptag"><div class="n">Wednesday sale!</div><div>${money(S)} for ${n}</div></div><div class="ptag"><div class="n">Usual price</div><div>${money(p)} each</div></div></div>`,
     options:makeOptions(money(save),[{label:money(n*p),code:'saleTotal'},{label:money(S),code:'salePrice'},{label:save%n===0?money(save/n):null,code:'perPacket'},{label:money(n*p+S),code:'addBoth'}],()=>money(save+R.pick([-50,50,-10,10,100]))),answer:money(save),why,
@@ -1142,7 +1145,7 @@ function genRectArea(){
     perim:`That's the perimeter (the distance around). Area = length × breadth.`,
     other:`Find the length of one rectangle first: ${L} ÷ ${r}.`
   };
-  return {skill:'rectArea',brief:`total length ${L} cm, height ${h} cm`,walkVisual:rectsFig(r,L,h),
+  return {skill:'rectArea',trace:TR([`${L} ÷ ${r}`,[`${L} + ${h}`,`${L} × ${h}`]],`${l} cm`,['the length of one rectangle',['the area of one rectangle','the length of all the rectangles']]),brief:`total length ${L} cm, height ${h} cm`,walkVisual:rectsFig(r,L,h),
     text:`${r===2?'Two':'Three'} similar rectangles are placed side by side. Find the area of <b>one</b> rectangle.`,figure:`<div class="figure">${rectsFig(r,L,h)}</div>`,
     options:makeOptions(`${ans} cm²`,[{label:`${L+2*h} cm²`,code:'addSides'},{label:`${L*h} cm²`,code:'allRects'},{label:`${2*(l+h)} cm²`,code:'perim'}],()=>`${ans+R.pick([-h,h,-2*h,2*h])} cm²`),answer:`${ans} cm²`,why,
     remedy:[
@@ -1174,7 +1177,7 @@ function genBarGraph(){
     allDays:`Only the days from ${days[d1]} to ${days[d2]}, not all 5 days.`,
     other:`Read each bar carefully. Halfway between two lines is 50.`
   };
-  return {skill:'barGraph',brief:days.map((d,i)=>`${d.slice(0,3)} ${vals[i]}`).join(', '),walkVisual:barGraphSVG(vals,days,title,rng,true),
+  return {skill:'barGraph',trace:TR([`Add the bars from ${days[d1]} to ${days[d2]} (${rng.length} bars)`,[`Add 2 bars: ${days[d1]} and ${days[d2]}`,`Add the bars from ${days[d1]} to ${days[d2-1]}`]],String(vals[d1]),[`the ${th[0]} ${th[2]} on ${days[d1]}`,[`the ${th[0]} ${th[2]} from ${days[d1]} to ${days[d2]}`,`the scale of the graph`]]),brief:days.map((d,i)=>`${d.slice(0,3)} ${vals[i]}`).join(', '),walkVisual:barGraphSVG(vals,days,title,rng,true),
     text:`The bar graph shows the number of ${th[0]} ${th[1]} in 5 days. How many ${th[0]} were ${th[2]} <b>from ${days[d1]} to ${days[d2]}</b>?`,figure:`<div class="figure">${barGraphSVG(vals,days,title,null,false)}</div>`,
     options:makeOptions(String(sum),[{label:String(miss),code:'missLast'},{label:String(ends),code:'endsOnly'},{label:String(all),code:'allDays'}],()=>String(sum+R.pick([-50,50,-100,100]))),answer:String(sum),why,
     remedy:[
@@ -1216,7 +1219,7 @@ function genDoubleBar(){
     oneUnit:`${u} is what 1 line is worth. Now count how many lines the question needs.`,
     other:`The graph has no numbers. Step 1: count the lines between the ${cats[i1].toLowerCase()} bars. ${D} ÷ that = 1 line.`
   };
-  return {skill:'doubleBar',brief:`${cats.map((c,i)=>`${c} B${boys[i]} G${girls[i]}`).join(', ')} lines; 1 line = ${u}`,
+  return {skill:'doubleBar',trace:TR([`${D} ÷ ${k}`,[`Use ${D} as the answer`,`${D} × ${k}`]],String(u),['what 1 line on the graph is worth',[`the number of girls who chose ${cats[i1].toLowerCase()}`,`the answer for ${cats[i2].toLowerCase()}`]]),brief:`${cats.map((c,i)=>`${c} B${boys[i]} G${girls[i]}`).join(', ')} lines; 1 line = ${u}`,
     walkVisual:dblBarSVG(cats,boys,girls,true,u,[i1,i2]),
     text:`The bar graph shows the number of students who chose their favourite colour. <b>${D} more girls than boys</b> chose ${cats[i1].toLowerCase()}. ${qtxt}`,
     figure:`<div class="figure">${dblBarSVG(cats,boys,girls,false,u,null)}</div>`,
@@ -1255,7 +1258,7 @@ function genBarMoney(){
     other:`Read each bar, add them up, then multiply by $${p}.`
   };
   const mis=vals.slice();mis[tricky]+=10;
-  return {skill:'barMoney',brief:th[2].map((l,i)=>`${l} ${vals[i]}`).join(', ')+`; $${p} each`,walkVisual:tickBarSVG(vals,th[2],title,null,true),
+  return {skill:'barMoney',trace:TR([`Add all ${vals.length} bars`,[`Multiply the tallest bar by $${p}`,'Add the 2 tallest bars']],String(sum),[`the number of ${th[0]} sold`,['the money received',`the price of one ${th[3]}`]]),brief:th[2].map((l,i)=>`${l} ${vals[i]}`).join(', ')+`; $${p} each`,walkVisual:tickBarSVG(vals,th[2],title,null,true),
     text:`The bar graph shows the number of ${th[0]} ${th[1]}. Each ${th[3]} was sold for <b>$${p}</b>. What was the total amount of money received from the sale of the ${th[0]}?`,
     figure:`<div class="figure">${tickBarSVG(vals,th[2],title,null,false)}</div>`,
     options:makeOptions(`$${ans}`,[{label:`$${sum}`,code:'forgotPrice'},{label:`$${(sum+10)*p}`,code:'misread'},{label:`$${(sum-vals[3])*p}`,code:'missBar'}],()=>`$${ans+R.pick([-2,-1,1,2])*10*p}`),answer:`$${ans}`,why,
@@ -1335,7 +1338,7 @@ function genFracRest(){
   };
   const qtxt=mode==='more'?`How much more of the chocolate bar was eaten by ${C} than ${Bn}? Give your answer in its simplest form.`:`What fraction of the chocolate bar did ${C} eat? Give your answer in its simplest form.`;
   const raw=mode==='more'?rest-ck:rest;
-  return {skill:'fracRest',brief:`${A} ${a}/${B}, ${Bn} ${c}/${s}, ${C} the rest`,walkVisual:`<div class="figure">${fbar3(a,ck,B)}<p class="muted" style="font-size:15px;margin:4px 0">Pink: ${A} ${a}/${B}. Blue: ${Bn} ${ck}/${B}. Yellow: ${C} ${rest}/${B}.</p></div>`,
+  return {skill:'fracRest',trace:TR([`Change ${c}/${s} into ${B}ths`,[`Add ${a}/${B} + ${c}/${s} as they are`,`Take ${c}/${s} away from ${a}/${B}`]],`${rest}/${B}`,[`what ${C} ate`,[`what ${A} and ${Bn} ate together`,`how much more ${C} ate than ${Bn}`]]),brief:`${A} ${a}/${B}, ${Bn} ${c}/${s}, ${C} the rest`,walkVisual:`<div class="figure">${fbar3(a,ck,B)}<p class="muted" style="font-size:15px;margin:4px 0">Pink: ${A} ${a}/${B}. Blue: ${Bn} ${ck}/${B}. Yellow: ${C} ${rest}/${B}.</p></div>`,
     text:`${A}, ${Bn} and ${C} shared a chocolate bar. ${A} ate ${frac(a,B)} of the chocolate bar while ${Bn} ate ${frac(c,s)} of the chocolate bar. ${C} ate <b>the rest</b> of the chocolate bar. ${qtxt}`,
     options:makeOptions(ans,[{label:mode==='more'?simp(rest):null,code:'restOnly'},{label:simp(a+ck),code:'sumOnly'},{label:mode==='more'?simp(a):simp(a),code:'wrongPerson'},{label:gcd(raw,B)>1?`${raw}/${B}`:null,code:'notSimpleR'}],()=>simp(R.int(1,B-1))),answer:ans,why,
     remedy:[
@@ -1363,7 +1366,7 @@ function genWire(){
   const base=`${nm} used a piece of wire to form a rectangle and a square. The length of the rectangle was <b>twice</b> the length of the square. `;
   if(mode==='area'){
     const why={rectAreaW:`${L} × ${W} is the area of the RECTANGLE. We want the square.`,noHalf:`The rectangle's length is TWICE the square's side. So the square's side is ${L} ÷ 2 = ${sd} cm.`,perimSq:`That is the perimeter of the square. Area = side × side.`,other:`Find the square's side first: ${L} ÷ 2.`};
-    return {skill:'wire',brief:`rectangle ${L} cm × ${W} cm, find area of square`,walkVisual:wireFig(L,W,sd,true),
+    return {skill:'wire',trace:TR([`${L} ÷ 2`,[`${L} × ${W}`,`${L} + ${W}`]],`${sd} cm`,['the side of the square',['the area of the square','the length of the rectangle']]),brief:`rectangle ${L} cm × ${W} cm, find area of square`,walkVisual:wireFig(L,W,sd,true),
       text:base+'Find the <b>area of the square</b>.',figure:`<div class="figure">${wireFig(L,W,sd,false)}</div>`,
       options:makeOptions(`${area} cm²`,[{label:`${L*W} cm²`,code:'rectAreaW'},{label:`${L*L} cm²`,code:'noHalf'},{label:`${4*sd} cm²`,code:'perimSq'}],()=>`${area+R.pick([-2,2,-1,1])*sd} cm²`),answer:`${area} cm²`,why,
       remedy:[
@@ -1374,7 +1377,7 @@ function genWire(){
   }
   const pr=2*(L+W),ps=4*sd;
   const why={rectOnly:`${pr} cm is only the rectangle. The wire also made the square: add its perimeter too.`,sidesOnly:`The wire goes ALL the way around both shapes, not just the sides shown.`,usedArea:`That uses area (× sides). Wire length is a PERIMETER: add all the sides.`,noHalfW:`The square's side is HALF the rectangle's length: ${L} ÷ 2 = ${sd} cm.`,other:`Wire = perimeter of rectangle + perimeter of square.`};
-  return {skill:'wire',brief:`rectangle ${L} cm × ${W} cm, find wire length`,walkVisual:wireFig(L,W,sd,true),
+  return {skill:'wire',trace:TR([`${L} ÷ 2`,[`${L} × ${W}`,`${L} + ${W}`]],`${sd} cm`,['the side of the square',['the area of the square','the length of the rectangle']]),brief:`rectangle ${L} cm × ${W} cm, find wire length`,walkVisual:wireFig(L,W,sd,true),
     text:base+'Find the <b>length of the piece of wire</b> she used.'.replace('she',P.toLowerCase()),figure:`<div class="figure">${wireFig(L,W,sd,false)}</div>`,
     options:makeOptions(`${wire} cm`,[{label:`${pr} cm`,code:'rectOnly'},{label:`${L+W+sd} cm`,code:'sidesOnly'},{label:`${pr+4*L} cm`,code:'noHalfW'},{label:`${L*W+sd*sd} cm`,code:'usedArea'}],()=>`${wire+R.pick([-4,4,-2,2])} cm`),answer:`${wire} cm`,why,
     remedy:[
@@ -1399,7 +1402,7 @@ function genNotes(){
     divWrong:`Divide by the DIFFERENCE between the notes ($${b} − $${a} = $${step}), not by $${b}.`,
     other:`Pretend all ${N} notes are $${a} notes first. How much short is that?`
   };
-  return {skill:'notes',brief:`${N} notes of $${a} and $${b}, total $${T}`,
+  return {skill:'notes',trace:TR([`${N} × $${a} (pretend all are $${a} notes)`,[`$${T} ÷ $${b}`,`$${T} − $${b}`]],`$${short}`,[`how much short if all the notes were $${a}`,[`the number of $${b} notes`,'the total amount']]),brief:`${N} notes of $${a} and $${b}, total $${T}`,
     walkVisual:`<div class="figure"><table class="atab"><tr><td>All ${N} notes are $${a}</td><td><b>$${allA}</b></td></tr><tr><td>Short by</td><td>$${T} − $${allA} = <b>$${short}</b></td></tr><tr><td>1 swap ($${a} → $${b}) adds</td><td><b>$${step}</b></td></tr><tr><td>Swaps needed</td><td>${short} ÷ ${step} = <b>${x}</b> $${b} notes</td></tr></table></div>`,
     text:`${nm} has <b>${N} notes</b>. Some are $${a} notes and the rest are $${b} notes. The total amount is <b>$${T}</b>. How many <b>$${askBig?b:a} notes</b> are there?`,
     options:makeOptions(String(ans),[{label:String(short),code:'stopShort'},{label:String(askBig?N-x:x),code:'otherNote'},{label:Number.isInteger(T/b)?String(T/b):null,code:'allBig'},{label:Number.isInteger(short/b)&&short/b!==ans?String(short/b):null,code:'divWrong'}],()=>String(Math.max(1,ans+R.pick([-2,-1,1,2,3])))),answer:String(ans),why,
@@ -2025,9 +2028,10 @@ function learnHTML(Q){
 function miniLine(){return `<div class="mini" aria-label="Question ${quest.i+1} of ${quest.qs.length}">${quest.qs.map((q,i)=>`${i?'<i></i>':''}<span class="${i<quest.i?'done':i===quest.i?'now':''}"></span>`).join('')}</div>`}
 
 function record(Q,res){
-  state.attempts.push({d:today(),skill:Q.skill,res,code:Q.firstCode||null,secs:Math.round((Date.now()-Q.t0)/1000)});
+  const trF=Q.tr?Q.tr.first:Q.planFirst?{ok:Q.planFirst.ok,unsure:false}:null,trM=Q.tr?Q.tr.mean:null;
+  state.attempts.push({d:today(),day:quest.day,mode:quest.mode,skill:Q.skill,res,code:Q.firstCode||null,secs:Math.round((Date.now()-Q.t0)/1000),t1:trF?(trF.unsure?'u':trF.ok?1:0):null,t2:trM?(trM.unsure?'u':trM.ok?1:0):null});
   const plain=h=>String(h).replace(/<span class="frac"><span>(\d+)<\/span><i><\/i><span>(\d+)<\/span><\/span>/g,'$1/$2').replace(/<[^>]+>/g,'');
-  quest.results.push({skill:Q.skill,res,text:plain(Q.text)+(Q.brief?` [${Q.brief}]`:''),ans:Q.answer,picks:Q.picks.slice(),code:Q.firstCode||null,code2:Q.secondCode||null,hinted:!!Q.hinted,planMiss:Q.planMiss||0,learned:!!Q.learn,
+  quest.results.push({skill:Q.skill,res,text:plain(Q.text)+(Q.brief?` [${Q.brief}]`:''),ans:Q.answer,picks:Q.picks.slice(),code:Q.firstCode||null,code2:Q.secondCode||null,hinted:!!Q.hinted,planMiss:Q.planMiss||0,learned:!!Q.learn,trace:Q.tr||null,planFirst:Q.planFirst||null,
     twin:Q.twin?{text:plain(Q.twin.text)+(Q.twin.brief?` [${Q.twin.brief}]`:''),ans:Q.twin.answer,pick:Q.twin.sel}:null});save();
 }
 
@@ -2050,9 +2054,26 @@ function renderQuest(){
     <div class="opts">${P.options.map(o=>`<button class="opt ${Q.planBad.includes(o)?'bad':''}" data-p="${esc(o)}" ${Q.planBad.includes(o)?'disabled':''}>${o}</button>`).join('')}</div>
     ${Q.planBad.length?`<p class="tip hintbox">💡 ${P.hint}</p>`:''}</section></article>`;
     document.getElementById('quit').onclick=()=>askConfirm('Leave this ride?','Questions you already finished are saved. You can start a new ride any time.','Leave the ride','Keep going',()=>{view='home';render()});
-    app.querySelectorAll('[data-p]:not([disabled])').forEach(b=>b.onclick=()=>{const o=b.dataset.p;
+    app.querySelectorAll('[data-p]:not([disabled])').forEach(b=>b.onclick=()=>{const o=b.dataset.p;if(st===0&&Q.planFirst==null){Q.planFirst={pick:o,ok:o===P.correct,q:P.q,correct:P.correct}}
       if(o===P.correct){Q.planNotes.push(P.note);Q.planStep=st+1;Q.planBad=[];if(Q.planStep>=Q.plan.length)Q.t0=Date.now()}else{Q.planBad.push(o);Q.planMiss=(Q.planMiss||0)+1}
       renderQuest()});
+    return;
+  }
+  if(Q.phase==='ask'&&Q.trace&&!Q.tr){
+    const T=Q.trace,st=Q.trStep||0;
+    if(!T.o1){T.o1=R.shuffle([T.first.c,...T.first.w]);T.o2=R.shuffle([T.mean.c,...T.mean.w])}
+    const NS="I wasn't sure how to start";
+    const q=st===0?{h:'What did you work out first?',o:[...T.o1,NS]}:{h:`What does <b>${T.num}</b> mean? It is…`,o:[...T.o2,"I'm not sure"]};
+    app.innerHTML=`<div class="qbar"><button class="link" id="quit">Back to the map</button>${miniLine()}</div>
+    <article class="qcard"><p class="qmeta"><span>Question ${quest.i+1} of ${quest.qs.length}</span><span class="tag">${SKILLS[Q.skill].short}</span></p>
+    <div class="qtext">${Q.text}</div>${Q.figure||''}
+    <section class="plan trace"><h3>✏️ Show your thinking (${st+1} of 2)</h3><p class="muted" style="margin:0 0 8px;font-size:15px">${st===0?'Solve it on your paper first. Then tell me how you did it. There is no right or wrong here, just be honest!':'Look at your working on paper.'}</p>
+    <p class="pq">${q.h}</p><div class="opts trops">${q.o.map(o=>`<button class="opt" data-t="${esc(o)}">${o}</button>`).join('')}</div></section></article>`;
+    document.getElementById('quit').onclick=()=>askConfirm('Leave this ride?','Questions you already finished are saved. You can start a new ride any time.','Leave the ride','Keep going',()=>{view='home';render()});
+    app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const o=b.dataset.t;
+      if(st===0){Q.tr1={pick:o,ok:o===T.first.c,unsure:o===NS};Q.trStep=1}
+      else{Q.tr2={pick:o,ok:o===T.mean.c,unsure:o==="I'm not sure"};Q.tr={first:Q.tr1,mean:Q.tr2,correctFirst:T.first.c,num:T.num,correctMean:T.mean.c};Q.t0=Date.now()}
+      renderQuest();window.scrollTo(0,0)});
     return;
   }
   const twin=Q.phase==='twin'||Q.phase==='twinDone';const cur=twin?Q.twin:Q;
@@ -2115,7 +2136,8 @@ function renderQuest(){
 
 function walkHTML(Q,cur){
   const L=cur.solution,n=Math.min(Q.walk||1,L.length),all=n>=L.length;
-  return `<section class="walk"><h3>How to solve it</h3><p class="tip">💡 ${TIPS[cur.skill]}</p>${cur.walkVisual?`<div class="figure">${cur.walkVisual}</div>`:''}
+  const yt=cur===Q&&Q.tr?`<p class="yourthink">Your thinking: first step ${Q.tr.first.ok?'✅':Q.tr.first.unsure?'🤔':'❌'} <span class="muted">(${esc(Q.tr.correctFirst)})</span><br>${esc(Q.tr.num)} means ${Q.tr.mean.ok?'✅':Q.tr.mean.unsure?'🤔':'❌'} <span class="muted">(${esc(Q.tr.correctMean)})</span></p>`:'';
+  return `<section class="walk"><h3>How to solve it</h3>${yt}<p class="tip">💡 ${TIPS[cur.skill]}</p>${cur.walkVisual?`<div class="figure">${cur.walkVisual}</div>`:''}
   <ol class="sol">${L.slice(0,n).map((l,i)=>`<li class="${i===n-1&&n>1?'fresh':''}">${l}</li>`).join('')}</ol>
   <p class="muted" style="font-size:16px">${all?'Did your working match? If not, fix it on your paper.':'Compare each step with your working on paper.'}</p>
   <div class="actions">${all?'':`<button class="btn soft" id="more">Show next step (${n} of ${L.length})</button>`}${all&&Q.phase==='solved'&&!Q.explored&&Q.res!=='fixed'?`<button class="btn soft" id="explore">Try the hands-on guide</button>`:''}</div></section>`;
@@ -2350,6 +2372,7 @@ function renderParent(){
     <p class="msg" id="bkMsg" role="status"></p>
   </div>
   <h2>Right first time, by Day</h2><div class="card tablewrap">${ch}${byDay.some(b=>b.best>b.acc)?'<p class="muted" style="font-size:15px">Solid bar: first attempt. Dashed top: her best score after redoing that Day.</p>':''}</div>
+  <h2>How she thinks</h2><div class="card tablewrap">${thinkHTML()}</div>
   <h2>Her answers</h2><div class="card" id="answers"></div>
   <h2>By topic</h2><div class="card tablewrap"><table><tr><th>Topic</th><th>Done</th><th>First time</th><th>Fixed with clue</th><th>Fixed with guide</th><th>Still missed</th><th>Stars</th></tr>
   ${Object.keys(SKILLS).map(k=>{const s=skillStats(k);return `<tr><td>${SKILLS[k].name}</td><td>${s.n}</td><td>${s.first}</td><td>${s.retry}</td><td>${s.fixed}</td><td>${s.missed}</td><td>${starHTML(s.stars)}</td></tr>`}).join('')}</table></div>
@@ -2365,6 +2388,19 @@ function renderParent(){
 }
 
 let ansSel=null;
+function thinkHTML(){
+  const A=state.attempts.filter(a=>a.t1!=null||a.t2!=null);
+  if(!A.length)return '<p class="muted">Starts filling in after her next ride. On word problems she taps her first step and what her key number means, before choosing the answer, with no right/wrong shown. This shows whether she is thinking it through or just combining numbers.</p>';
+  const pct=(arr,f)=>arr.length?Math.round(100*arr.filter(f).length/arr.length)+'%':'–';
+  const groups={};A.forEach(a=>{const k=a.day?`Day ${a.day}${a.mode==='redo'?' (redo)':''}`:'Practice';(groups[k]=groups[k]||[]).push(a)});
+  const rows=Object.entries(groups).slice(-12);
+  const row=(lab,g)=>{const f=g.filter(a=>a.t1!=null),m=g.filter(a=>a.t2!=null);return `<tr><td>${lab}</td><td>${g.length}</td><td>${pct(f,a=>a.t1===1)}</td><td>${pct(m,a=>a.t2===1)}</td><td>${pct(f,a=>a.t1==='u')}</td><td>${pct(g,a=>a.res==='first')}</td></tr>`};
+  const bySkill={};A.forEach(a=>{(bySkill[a.skill]=bySkill[a.skill]||[]).push(a)});
+  const weak=Object.entries(bySkill).map(([k,g])=>{const f=g.filter(a=>a.t1!=null),m=g.filter(a=>a.t2!=null);return {k,n:g.length,f:f.length?f.filter(a=>a.t1===1).length/f.length:1,m:m.length?m.filter(a=>a.t2===1).length/m.length:1}}).filter(x=>x.f<1||x.m<1).sort((a,b)=>(a.f+a.m)-(b.f+b.m)).slice(0,6);
+  return `<table><tr><th>Ride</th><th>Word problems</th><th>First step right</th><th>Knew what her number meant</th><th>Not sure how to start</th><th>Answer right first time</th></tr>${rows.map(([l,g])=>row(l,g)).join('')}${row('<b>All</b>',A)}</table>
+  <p class="muted" style="font-size:15px">Improving looks like: first step and meaning going up, "not sure" going down. If the answer is right but the first step or meaning is wrong, she may be guessing or combining numbers.</p>
+  ${weak.length?`<p style="margin:12px 0 4px"><b>Where her thinking slips most</b></p><table>${weak.map(x=>`<tr><td>${SKILLS[x.k]?SKILLS[x.k].name:x.k}</td><td>first step ${Math.round(x.f*100)}%</td><td>meaning ${Math.round(x.m*100)}%</td><td class="muted">${x.n} question${x.n===1?'':'s'}</td></tr>`).join('')}</table>`:''}`;
+}
 function renderAnswers(){
   const box=document.getElementById('answers');if(!box)return;
   const list=state.sessions.map((x,i)=>({x,i})).filter(o=>Array.isArray(o.x.qs)&&o.x.qs.length&&o.x.qs[0].text).reverse();
@@ -2378,7 +2414,9 @@ function renderAnswers(){
   <ol class="alist">${ss.qs.map(q=>{const r=res[q.res]||['',''];return `<li class="aitem ${q.res}">
     <div class="ahead"><span class="tag">${SKILLS[q.skill]?SKILLS[q.skill].short:q.skill}</span><span class="ares">${r[0]} ${r[1]}</span>${q.learned?'<span class="badge">saw lesson first</span>':''}${q.hinted?'<span class="badge">used hint</span>':''}${q.planMiss?`<span class="badge">Think-first: ${q.planMiss} wrong pick${q.planMiss>1?'s':''}</span>`:''}</div>
     <p class="aq">${esc(q.text)}</p>
-    <table class="atab"><tr><td>Correct answer</td><td><b>${esc(q.ans)}</b></td></tr>
+    <table class="atab">${q.trace?`<tr><td>Her first step</td><td class="${q.trace.first.ok?'ok':'no'}">${esc(q.trace.first.pick)} ${q.trace.first.ok?'✓':q.trace.first.unsure?'🤔':'✗'}${q.trace.first.ok?'':` <span class="muted">(right first step: ${esc(q.trace.correctFirst)})</span>`}</td></tr>
+    <tr><td>She said ${esc(q.trace.num)} is</td><td class="${q.trace.mean.ok?'ok':'no'}">${esc(q.trace.mean.pick)} ${q.trace.mean.ok?'✓':q.trace.mean.unsure?'🤔':'✗'}${q.trace.mean.ok?'':` <span class="muted">(it is ${esc(q.trace.correctMean)})</span>`}</td></tr>`:q.planFirst?`<tr><td>Think-first pick</td><td class="${q.planFirst.ok?'ok':'no'}">${esc(q.planFirst.q)} → ${esc(q.planFirst.pick)} ${q.planFirst.ok?'✓':'✗'}</td></tr>`:''}
+    <tr><td>Correct answer</td><td><b>${esc(q.ans)}</b></td></tr>
     ${(q.picks||[]).map((pk,j)=>`<tr><td>${j?'2nd try':'1st try'}</td><td class="${pk===q.ans?'ok':'no'}">${esc(pk)} ${pk===q.ans?'✓':'✗'}${pk!==q.ans&&(j?q.code2:q.code)&&(j?q.code2:q.code)!=='other'?` <span class="muted">(${MISTAKES[j?q.code2:q.code]})</span>`:''}</td></tr>`).join('')}
     ${q.twin?`<tr><td>Twin question</td><td>${esc(q.twin.text)}<br>Correct <b>${esc(q.twin.ans)}</b>, she picked <span class="${q.twin.pick===q.twin.ans?'ok':'no'}">${esc(q.twin.pick||'–')} ${q.twin.pick===q.twin.ans?'✓':'✗'}</span></td></tr>`:''}
     </table></li>`}).join('')}</ol>`;
