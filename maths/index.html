@@ -1895,28 +1895,28 @@ function weightedPick(keys,count){
     out.push(pool.splice(Math.min(i,pool.length-1),1)[0]);
   }return out;
 }
-const DAILY_N=8;
+const DAILY_N=10;
 // Holiday fix-up plan (Days 24-37), built from the P3 final exam: half fractions, half the word-problem traps.
 const EXAM_DAYS=23;
 const HOLIDAY=[
-  ['fracBig','fracCmp','fraction','fracOrder','diffFind','timesDiv','beforeAfter','ratio'],
-  ['fracChain','fracCmp','fracBig','digits','timesDiv','equalStart','stackPerim','diffFind'],
-  ['fracChain','fracCmp','fracOrder','angles','equalStart','sameDur','timesDiv','stackPerim'],
-  ['fracBig','fracChain','fracHalf','minutes','diffFind','equalStart','timesDiv','fracRest'],
-  ['fracCmp','fracChain','fraction','digits','sameDur','stackPerim','equalStart','transfer'],
-  ['fracBig','fracCmp','fracAdd','angles','timesDiv','diffFind','sameDur','fracRest'],
-  ['fracChain','fracCmp','shadeMore','timeEnd','equalStart','stackPerim','timesDiv','diffFind'],
-  ['fracOrder','fracChain','fracBig','digits','sameDur','equalStart','ratio','timesDiv'],
-  ['fracCmp','fracChain','fraction','angles','diffFind','timesDiv','stackPerim','fracRest'],
-  ['fracBig','fracCmp','fracHalf','minutes','equalStart','sameDur','beforeAfter','timesDiv'],
-  ['fracChain','fracCmp','fracAdd','digits','timesDiv','diffFind','equalStart','stackPerim'],
-  ['fracCmp','fracBig','fracChain','angles','sameDur','equalStart','transfer','fracRest'],
-  ['fracChain','fracCmp','fracOrder','watch','timesDiv','diffFind','stackPerim','equalStart'],
-  ['fracCmp','fracChain','fracBig','angles','equalStart','timesDiv','sameDur','diffFind']
+  ['fracBig','fracCmp','fraction','fracOrder','diffFind','timesDiv','beforeAfter','ratio','missingNum','doubleBar'],
+  ['fracChain','fracCmp','fracBig','digits','timesDiv','equalStart','stackPerim','diffFind','divRem','notes'],
+  ['fracChain','fracCmp','fracOrder','angles','equalStart','sameDur','timesDiv','stackPerim','longDiv','wire'],
+  ['fracBig','fracChain','fracHalf','minutes','diffFind','equalStart','timesDiv','fracRest','place','barMoney'],
+  ['fracCmp','fracChain','fraction','digits','sameDur','stackPerim','equalStart','transfer','missingNum','trees'],
+  ['fracBig','fracCmp','fracAdd','angles','timesDiv','diffFind','sameDur','fracRest','areaHalves','boxes'],
+  ['fracChain','fracCmp','shadeMore','timeEnd','equalStart','stackPerim','timesDiv','diffFind','divRem','groups'],
+  ['fracOrder','fracChain','fracBig','digits','sameDur','equalStart','ratio','timesDiv','place','barGraph'],
+  ['fracCmp','fracChain','fraction','angles','diffFind','timesDiv','stackPerim','fracRest','place','notes'],
+  ['fracBig','fracCmp','fracHalf','minutes','equalStart','sameDur','beforeAfter','timesDiv','areaHalves','barMoney'],
+  ['fracChain','fracCmp','fracAdd','digits','timesDiv','diffFind','equalStart','stackPerim','missingNum','rectArea'],
+  ['fracCmp','fracBig','fracChain','angles','sameDur','equalStart','transfer','fracRest','divRem','wire'],
+  ['fracChain','fracCmp','fracOrder','watch','timesDiv','diffFind','stackPerim','equalStart','longDiv','boxes'],
+  ['fracCmp','fracChain','fracBig','angles','equalStart','timesDiv','sameDur','diffFind','areaHalves','doubleBar']
 ];
 function planDaily(){
   const warm=Object.keys(SKILLS).filter(k=>SKILLS[k].warm),word=Object.keys(SKILLS).filter(k=>!SKILLS[k].warm);
-  return [...weightedPick(warm,2),...weightedPick(word,DAILY_N-2)];
+  return [...weightedPick(warm,3),...weightedPick(word,DAILY_N-3)];
 }
 
 // ---------- app ----------
@@ -1990,7 +1990,7 @@ function renderHome(){
   <div class="linebox" id="linebox">${lineSVG()}</div>
   <section class="ride">
     <div>${all?`<h2>You finished all ${TOTAL_DAYS} days! 🎉</h2><p>Redo any Day below to practise again.</p>`
-      :`<h2>Day ${nd} ride</h2><p>${DAILY_N} questions, about ${hol?'25-30':'20'} minutes. ${hol?'Fractions first, then word problems from your final exam. Draw the model before you work it out!':'Keep your paper and pencil ready.'}</p>`}</div>
+      :`<h2>Day ${nd} ride</h2><p>${DAILY_N} questions, about ${hol?'30-35':'25-30'} minutes. ${hol?'Fractions first, then word problems from your final exam, then 2 review questions. Draw the model before you work it out!':'Keep your paper and pencil ready.'}</p>`}</div>
     <div class="ridebtns">${all?'':`<button class="btn" id="go">Start Day ${nd}</button>`}${canPlay?`<button class="btn ${all?'':'soft'}" id="play">${GAMES[lastG.id].icon} Play Day ${done} game</button>`:''}</div>
   </section>
   ${!all?`<p class="teaser">🎁 Finish Day ${nd} to unlock: <b>${GAMES[gameFor(nd).id].icon} ${GAMES[gameFor(nd).id].name}</b></p>`:''}
@@ -2355,7 +2355,7 @@ function renderParent(){
   ${Object.keys(SKILLS).map(k=>{const s=skillStats(k);return `<tr><td>${SKILLS[k].name}</td><td>${s.n}</td><td>${s.first}</td><td>${s.retry}</td><td>${s.fixed}</td><td>${s.missed}</td><td>${starHTML(s.stars)}</td></tr>`}).join('')}</table></div>
   <h2>Mistakes she is making</h2><div class="card">${misList.length?`<table>${misList.map(([c,n])=>`<tr><td>${MISTAKES[c]||c}</td><td>${n}×</td></tr>`).join('')}</table>`:'<p class="muted">Nothing yet. Her first wrong answer on each question is logged here by type.</p>'}</div>
   <h2>Recent rides</h2><div class="card tablewrap">${S.length?`<table><tr><th>Day</th><th>Date</th><th>Type</th><th>Right first time</th><th>Time taken</th></tr>${S.slice(-12).reverse().map(s=>`<tr><td>${s.day?'Day '+s.day:'–'}</td><td>${nice(s.d)}</td><td>${s.mode==='daily'?'First try':s.mode==='redo'?'Redo':s.mode==='extra'?'Extra ride':'Topic practice'}</td><td>${s.first} / ${s.n}</td><td>${Math.max(1,Math.round(s.secs/60))} min</td></tr>`).join('')}</table>`:'<p class="muted">No rides yet.</p>'}</div>
-  <h2>How it works</h2><div class="card"><p>There are ${TOTAL_DAYS} Days; finishing one unlocks the next straight away, and any finished Day can be redone with the same questions. ${weakFirst()?`This run starts with her weakest topics: Days 1 to ${HOLIDAY.length} are the fix-up Days, and Days ${HOLIDAY.length+1} to ${TOTAL_DAYS} mix all ${Object.keys(SKILLS).length} topics, weighted towards the ones she gets wrong most. The fix-up Days are`:`Days 1 to ${EXAM_DAYS} came before the exam. Days ${EXAM_DAYS+1} to ${TOTAL_DAYS} are the holiday fix-up,`} built from her P3 final paper: each has ${DAILY_N} questions, 3 on fractions and the rest on the word problems and topics she lost marks on. On the fix-up word problems she first answers a short "Think first" step (for example, which bar is longer, or what to find first) before the answer choices appear; a wrong pick shows a hint, and her plan stays on screen while she works. If she missed a fix-up topic in the last 3 days, the worked example is shown again the next time it comes up. The first time she meets a new kind of question, she sees a short lesson with a worked example before trying it, and she can tap Hint any time, weighted towards her weakest topics and anything she missed in the last 3 days. When she gets a question wrong, she first gets a clue matched to her specific mistake and one more try. If she's still wrong, a guided fix walks her through it step by step, then she answers a twin question with new numbers. Even when she is right, she goes through the worked steps before moving on, and can open the hands-on guide.</p>
+  <h2>How it works</h2><div class="card"><p>There are ${TOTAL_DAYS} Days; finishing one unlocks the next straight away, and any finished Day can be redone with the same questions. ${weakFirst()?`This run starts with her weakest topics: Days 1 to ${HOLIDAY.length} are the fix-up Days, and Days ${HOLIDAY.length+1} to ${TOTAL_DAYS} mix all ${Object.keys(SKILLS).length} topics, weighted towards the ones she gets wrong most. The fix-up Days are`:`Days 1 to ${EXAM_DAYS} came before the exam. Days ${EXAM_DAYS+1} to ${TOTAL_DAYS} are the holiday fix-up,`} built from her P3 final paper: each has ${DAILY_N} questions: about 4 on fractions, 4 on the word problems and topics she lost marks on, and 2 review questions from earlier topics (bar graphs, notes, missing numbers, wire shapes and more). On the fix-up word problems she first answers a short "Think first" step (for example, which bar is longer, or what to find first) before the answer choices appear; a wrong pick shows a hint, and her plan stays on screen while she works. If she missed a fix-up topic in the last 3 days, the worked example is shown again the next time it comes up. The first time she meets a new kind of question, she sees a short lesson with a worked example before trying it, and she can tap Hint any time, weighted towards her weakest topics and anything she missed in the last 3 days. When she gets a question wrong, she first gets a clue matched to her specific mistake and one more try. If she's still wrong, a guided fix walks her through it step by step, then she answers a twin question with new numbers. Even when she is right, she goes through the worked steps before moving on, and can open the hands-on guide.</p>
   <p><button class="pill" id="reset">Reset all progress</button></p></div></section>`;
   document.getElementById('back').onclick=()=>{view='home';render()};
   document.getElementById('bkSave').onclick=downloadBackup;
